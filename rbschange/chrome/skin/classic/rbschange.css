@@ -1,0 +1,17 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+#tbtnChange {
+  list-style-image: url("chrome://rbschange/skin/change_24.png");
+}
+
+#tbtnChange:hover {
+  list-style-image: url("chrome://rbschange/skin/change_24.png");
+}
+
+[iconsize="small"] #tbtnChange {
+  list-style-image: url("chrome://rbschange/skin/change_17.png");
+}
+
+[iconsize="small"] #tbtnChange:hover {
+  list-style-image: url("chrome://rbschange/skin/change_17.png");
+}

@@ -1,0 +1,46 @@
+<!ENTITY rbschange.menu.title "Connexion à RBS Change ...">
+
+<!ENTITY rbschange.login.title "Connexion à RBS Change">
+<!ENTITY rbschange.login.validate "Valider">
+<!ENTITY rbschange.login.cancel "Annuler">
+<!ENTITY rbschange.login.header.title "Login">
+<!ENTITY rbschange.login.header.desc "Connexion au back office">
+<!ENTITY rbschange.login.form.url "URL du site:">
+<!ENTITY rbschange.login.form.login "Identifiant:">
+<!ENTITY rbschange.login.form.password "Mot de passe:">
+<!ENTITY rbschange.login.form.lang "Langue:">
+<!ENTITY rbschange.login.form.openinnewwindow "Ouvrir dans une nouvelle fenetre">
+<!ENTITY rbschange.login.form.persistidentity "Mémoriser mon identification">
+<!ENTITY rbschange.login.form.resetpassword "J'ai oublié mon mot de passe">
+<!ENTITY rbschange.login.form.openhistory "Historique...">
+<!ENTITY rbschange.login.form.firstlogintitle "Le compte administrateur de ce site n'a jamais été utilisé. Veuillez le paramétrer :">
+<!ENTITY rbschange.login.form.email "Courriel:">
+<!ENTITY rbschange.login.form.openconsole "Console...">
+
+<!ENTITY rbschange.login.error.servernotfound "Impossible de contacter le serveur: ">
+<!ENTITY rbschange.login.error.notchangeserver "Ce site ne peux pas être administré depuis cette interface">
+<!ENTITY rbschange.login.error.allfieldsrequired "Veuillez renseigner tous les champs">
+<!ENTITY rbschange.login.error.invalidurl "L'URL saisie n'est pas valide">
+
+<!ENTITY rbschange.login.error.versionchecking "Verification de la compatibilité en cours ...">
+<!ENTITY rbschange.login.error.unknowversion "Impossible de determiner la dernière version de Firefox à utiliser.">
+<!ENTITY rbschange.login.error.wrongversion "Vous utilisez actuellement Firefox navversion. La dernière version certifiée est lastversion.">
+
+<!ENTITY rbschange.prefs.title "Préférences">
+<!ENTITY rbschange.prefs.validate "Valider">
+<!ENTITY rbschange.prefs.cancel "Annuler">
+<!ENTITY rbschange.prefs.header.title "Préférences">
+<!ENTITY rbschange.prefs.header.desc "Préférences du manager">
+<!ENTITY rbschange.prefs.list.url "URL">
+<!ENTITY rbschange.prefs.delete "Supprimer">
+<!ENTITY rbschange.prefs.deleteselected "Supprimer la séléction">
+<!ENTITY rbschange.prefs.deleteall "Supprimer tout">
+<!ENTITY rbschange.prefs.checkall "Verifier tout">
+
+<!ENTITY rbschange.prefs.admindetection "Lancement optimisé du manager (&gt;3.0.1)">
+
+<!ENTITY rbschange.webconsole.title "Console web">
+<!ENTITY rbschange.webconsole.header.title "Console web">
+<!ENTITY rbschange.webconsole.header.desc "Execution de commandes change">
+<!ENTITY rbschange.webconsole.cmdlabel "Commande:">
+<!ENTITY rbschange.webconsole.close "Fermer">

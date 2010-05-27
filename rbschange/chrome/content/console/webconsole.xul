@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://rbschange/skin/webconsole.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://rbschange/locale/rbschange.dtd">
+<dialog id="rbschangewebconsole" title="&rbschange.webconsole.title;" 
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+	onload="onWebconsoleLoad();" 
+	persist="screenX screenY width height"
+	buttons="accept"
+	buttonlabelaccept="&rbschange.webconsole.close;" ondialogaccept="return doClose();">
+	
+	<script src="chrome://rbschange/content/toolkit.js" />
+	<script src="chrome://rbschange/content/console/webconsole.js" />
+	<script src="chrome://rbschange/content/console/sha1.js" />
+	<dialogheader title="&rbschange.webconsole.header.title;" description="&rbschange.webconsole.header.desc;" />
+	<vbox flex="1">
+		<hbox align="center">
+			<label value="&rbschange.webconsole.cmdlabel;" control="webcmd" />
+			<menulist id="webcmd" width="200" oncommand="onSelectCommand();">
+			   	<menupopup>
+			   		<menuitem label="Utilisation" value="-h" selected="true" />
+			   	</menupopup>
+			 </menulist>
+			<textbox id="webcmdargs" maxlength="255" size="30" spellcheck="false" oninput="onArgsChange();"/>
+			<button id="send" label="Executer" oncommand="sendCommand();"/>
+		</hbox>
+		<scrollbox style="overflow: auto" flex="1">
+			<div flex="1" xmlns="http://www.w3.org/1999/xhtml" class="cmdresult" id="result"></div>
+		</scrollbox>
+	</vbox>
+	<script type="text/javascript" src="chrome://rbschange/content/console/oauth.js" />
+</dialog>

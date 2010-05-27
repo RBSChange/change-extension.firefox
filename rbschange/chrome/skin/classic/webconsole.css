@@ -1,0 +1,29 @@
+@CHARSET "UTF-8";
+div.cmdresult {
+	color: white;
+	background-color: black;
+	overflow:visible;
+	-moz-user-select: text;
+	-moz-user-focus: normal;
+}
+
+span.row_std {
+	
+}
+
+span.row_31 {
+	color: red;
+}
+
+span.row_32 {
+	color: green;
+}
+
+span.row_35 {
+	color: yellow;
+}
+
+div.cmdresult a {
+	color: green;
+	text-decoration: underline;
+}

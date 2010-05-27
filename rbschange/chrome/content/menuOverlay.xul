@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://rbschange/locale/rbschange.dtd">
+<overlay id="ChangeMenuOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script src="chrome://rbschange/content/toolkit.js" />
+	<script src="chrome://rbschange/content/changeManager.js" />
+	<script src="chrome://rbschange/content/overlay.js" />
+	
+	<keyset>
+		<key id="open-change-key" modifiers="alt" key="c" oncommand="openChangeLogin();" />
+	</keyset>
+	
+	<menupopup id="menu_ToolsPopup">
+		<menuitem label="&rbschange.menu.title;" oncommand="openChangeLogin();" accesskey="c" key="open-change-key" />
+	</menupopup>
+</overlay>

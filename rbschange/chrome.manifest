@@ -1,0 +1,10 @@
+content	rbschange	chrome/content/
+locale	rbschange fr-FR chrome/locale/fr-FR/
+locale	rbschange en-EN chrome/locale/en-EN/
+
+overlay	chrome://browser/content/browser.xul	chrome://rbschange/content/widgetOverlay.xul
+overlay chrome://browser/content/browser.xul	chrome://rbschange/content/menuOverlay.xul
+
+skin	rbschange	classic/1.0	chrome/skin/classic/
+style	chrome://browser/content/browser.xul	chrome://rbschange/skin/rbschange.css
+style	chrome://global/content/customizeToolbar.xul	chrome://rbschange/skin/rbschange.css

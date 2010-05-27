@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://rbschange/locale/rbschange.dtd">
+<dialog id="rbschangelogin" title="&rbschange.login.title;" 
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+	onload="onLoginLoad();" 
+	persist="screenX screenY width height"
+	buttons="accept,cancel"
+	buttonlabelaccept="&rbschange.login.validate;" ondialogaccept="return doSave();" 
+	buttonlabelcancel="&rbschange.login.cancel;" ondialogcancel="return doCancel();">
+	
+	<script src="chrome://rbschange/content/toolkit.js"/>
+	<script src="chrome://rbschange/content/login.js"/>
+	
+	<dialogheader title="&rbschange.login.header.title;" description="&rbschange.login.header.desc;" />
+	<vbox flex="1" style="overflow: auto">
+		<hbox align="center">
+			<label style="width:15em" value="&rbschange.login.form.url;" control="url" />
+			<vbox>
+				<hbox>
+					<menulist id="url" editable="true" width="300">
+			     		<menupopup id="urlhistory"></menupopup>
+			 		</menulist>
+			 		<button id="openhistory" label="&rbschange.login.form.openhistory;" oncommand="openHistory();"/>
+			 	</hbox>
+			 <label value="" id="browserCompatibility" style="color:red" />
+			 </vbox>
+		</hbox>
+		<deck id="connexiontype">
+			<vbox>
+				<hbox align="center">
+					<label style="width:15em" value="&rbschange.login.form.login;" control="login" />
+					<textbox id="login" maxlength="255" size="20" onchange="onLoginUpdated();" />
+				</hbox>
+				<hbox align="center">
+					<label style="width:15em;" value="&rbschange.login.form.password;" control="password" />
+					<textbox id="password" maxlength="255" size="20" type="password"/>
+					<button id="resetpassword" label="&rbschange.login.form.resetpassword;" disabled="true" oncommand="onResetPassword();"/>
+					<button id="openConsole" label="&rbschange.login.form.openconsole;" hidden="true" oncommand="onOpenConsole();"/>
+				</hbox>
+				<hbox align="center" id="uilangselector" collapsed="true">
+					<label style="width:15em" value="&rbschange.login.form.lang;" control="uilang" />
+					<menulist id="uilang"></menulist>
+				</hbox>
+			</vbox>
+			<vbox>
+				<label style="font-weight: bold;" value="&rbschange.login.form.firstlogintitle;"/>
+				<hbox align="center">
+					<label style="width:15em" value="&rbschange.login.form.login;" />
+					<textbox id="adminlogin" maxlength="255" size="20" value="" disabled="true" />
+				</hbox>
+				<hbox align="center">
+					<label style="width:15em" value="&rbschange.login.form.password;" control="adminpassword" />
+					<textbox id="adminpassword" maxlength="255" size="20" />
+				</hbox>
+				<hbox align="center">
+					<label style="width:15em" value="&rbschange.login.form.email;" control="adminemail" />
+					<textbox id="adminemail" maxlength="255" size="50" />
+				</hbox>
+			</vbox>			
+		</deck>
+		
+		<checkbox label="&rbschange.login.form.persistidentity;" id="persistidentity" persist="checked"/>
+		<checkbox label="&rbschange.login.form.openinnewwindow;" id="openinnewwindow" persist="checked"/>
+
+		<hbox collapsed="true">
+			<label id="error_servernotfound" value="&rbschange.login.error.servernotfound;" />
+			<label id="error_notchangeserver" value="&rbschange.login.error.notchangeserver;" />
+			<label id="error_invalidurl" value="&rbschange.login.error.invalidurl;" />	
+			<label id="error_allfieldsrequired" value="&rbschange.login.error.allfieldsrequired;" />
+			<label id="error_versionchecking" value="&rbschange.login.error.versionchecking;" />
+			<label id="error_unknowversion" value="&rbschange.login.error.unknowversion;" />
+			<label id="error_wrongversion" value="&rbschange.login.error.wrongversion;" />	
+		</hbox>
+	</vbox>
+</dialog>
