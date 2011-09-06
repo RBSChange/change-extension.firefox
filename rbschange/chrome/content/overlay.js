@@ -205,62 +205,92 @@ function rbsChangeCheckPageContent(doc)
 	}
 }
 
-window.addEventListener("load", function () 
+window.addEventListener("load", rbsChangeInitialize , false);
+window.addEventListener("unload", rbsChangeUninitialize , false);
+
+function rbsChangeUninitialize()
+{
+	try
+	{
+		
+
+	}
+	catch (e)
+	{
+		// Do nothing
+	}
+}
+
+function rbsChangeInitialize()
+{
+	try
+	{
+		rbsChangeCheckPref();
+		rbsChangeRegisterAll();
+		
+		var prefs = ChangeToolKit.getPreferencesService();
+		
+		if (prefs.getCharPref('rbschange.ext.startmode') != 'event')
 		{
-			rbsChangeCheckPref();
-			rbsChangeRegisterAll();
-			var prefs = ChangeToolKit.getPreferencesService();
-			
-			if (prefs.getCharPref('rbschange.ext.startmode') != 'event')
+			ChangeToolKit.delayedExtensionStartUp = null;
+			gBrowser.addEventListener("load", rbsChangePageLoad, true);
+		}
+		
+		document.addEventListener("RBSChangeExtensionOpenWebConsole", function(event)
+		{
+			var elem = event.target;
+			ChangeToolKit.debug('RBSChangeExtensionOpenWebConsole...');
+			var OAuth = ChangeToolKit.getStoredOAuthInfo(elem.getAttribute('projectid'), elem.getAttribute('login'));
+			if (OAuth !== null)
 			{
-				ChangeToolKit.delayedExtensionStartUp = null;
-				gBrowser.addEventListener("load", rbsChangePageLoad, true);
+				OAuth.URL =  elem.getAttribute('url');
+				onOpenWebConsole(OAuth);
 			}
-			document.addEventListener("RBSChangeExtensionOpenWebConsole", function(event)
+		}, true, true); 
+		
+		document.addEventListener("RBSChangeExtensionStartEvent", function(event)
+		{ 
+			if (ChangeToolKit.delayedExtensionStartUp)
+			{
+				window.clearTimeout(ChangeToolKit.delayedExtensionStartUp);
+				ChangeToolKit.delayedExtensionStartUp = null;
+			}
+		    ChangeToolKit.debug('RBSChangeExtensionStartEvent...');
+			var elem = event.target;
+			var doc = elem.ownerDocument;
+			var match = doc.URL.match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
+			if (match)
+			{
+				ChangeToolKit.debug('rbsChangePageLoad : ' + match[0]);
+				var identifier = ChangeManager.getIdentifierByPath(match[1]);
+				if (identifier)
 				{
-					var elem = event.target;
-					ChangeToolKit.debug('RBSChangeExtensionOpenWebConsole...');
-					var OAuth = ChangeToolKit.getStoredOAuthInfo(elem.getAttribute('projectid'), elem.getAttribute('login'));
-					if (OAuth !== null)
+					var result = ChangeManager.login(identifier.uri, identifier.login, identifier.password, identifier.uilang);
+					if (result != null && result['ok'] == identifier.path)
 					{
-						OAuth.URL =  elem.getAttribute('url');
-						onOpenWebConsole(OAuth);
+						ChangeToolKit.debug('ReloadLoggedxchrom : ' + doc.baseURI);
+						doc.defaultView.location.href = doc.baseURI;
+						return;
 					}
-				}, true, true); 
-			
-			document.addEventListener("RBSChangeExtensionStartEvent", function(event)
-				{ 
-					if (ChangeToolKit.delayedExtensionStartUp)
-					{
-						window.clearTimeout(ChangeToolKit.delayedExtensionStartUp);
-						ChangeToolKit.delayedExtensionStartUp = null;
-					}
-				    ChangeToolKit.debug('RBSChangeExtensionStartEvent...');
-					var elem = event.target;
-					var doc = elem.ownerDocument;
-					var match = doc.URL.match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
-					if (match)
-					{
-						ChangeToolKit.debug('rbsChangePageLoad : ' + match[0]);
-						var identifier = ChangeManager.getIdentifierByPath(match[1]);
-						if (identifier)
-						{
-							var result = ChangeManager.login(identifier.uri, identifier.login, identifier.password, identifier.uilang);
-							if (result != null && result['ok'] == identifier.path)
-							{
-								ChangeToolKit.debug('ReloadLoggedxchrom : ' + doc.baseURI);
-								doc.defaultView.location.href = doc.baseURI;
-								return;
-							}
-						}
-					}					
-					var url = elem.getAttribute('url');
-					ChangeToolKit.debug('RBSChangeExtensionStartEvent : ' +  url);			
-					elem.setAttribute('style', 'display:none');
-					var identifier = {autoconnect: url};
-					window.openDialog('chrome://rbschange/content/login.xul', 'login', 'chrome,extrachrome,resizable,centerscreen,width=650,height=300', identifier);
-				}, true, true); 
-		}, false);
+				}
+			}					
+			var url = elem.getAttribute('url');
+			ChangeToolKit.debug('RBSChangeExtensionStartEvent : ' +  url);			
+			elem.setAttribute('style', 'display:none');
+			var identifier = {autoconnect: url};
+			window.openDialog('chrome://rbschange/content/login.xul', 'login', 'chrome,extrachrome,resizable,centerscreen,width=650,height=300', identifier);
+		}, true, true); 
+		
+		var cacm = document.getElementById('contentAreaContextMenu');
+		ChangeToolKit.debug('contentAreaContextMenu : ' + cacm.id);
+		cacm.addEventListener("popupshowing", ChangeManager.checkContextMenuDisplay, true); 
+		window.removeEventListener("load", rbsChangeInitialize, false);
+	}
+	catch (e)
+	{
+		ChangeToolKit.debug('Error on rbsChangeInitialize');
+	}
+}
 
 function rbsChangeRegisterAll()
 {

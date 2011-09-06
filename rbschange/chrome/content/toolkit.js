@@ -300,6 +300,7 @@ var ChangeToolKit =
 	   	
 	savePassword: function(projectId, userName, password)
    	{
+		ChangeToolKit.debug('ChangeToolKit.savePassword: ' + projectId + ', ' + userName + ', ' + password);
 		var hostname = 'xchrome://' + projectId;
    		var passwordManager = Components.classes["@mozilla.org/login-manager;1"].  
    				getService(Components.interfaces.nsILoginManager);
@@ -360,6 +361,7 @@ var ChangeToolKit =
 
    	updateStoredLoginInfo: function(projectId, userName, password)
    	{
+   		ChangeToolKit.debug('ChangeToolKit.updateStoredLoginInfo: ' + projectId + ', ' + userName + ', ' + password);
    		var hostname = 'xchrome://' + projectId;
    		var myLoginManager = Components.classes["@mozilla.org/login-manager;1"].  
    			getService(Components.interfaces.nsILoginManager);  
@@ -374,6 +376,7 @@ var ChangeToolKit =
    	    	   {
    	    		   return;
    	    	   }
+   	    	   ChangeToolKit.debug('ChangeToolKit.updateStoredLoginInfo: removeLogin ' + userName);
    	    	   myLoginManager.removeLogin(logins[i]);
    	    	   break;
    	       }  

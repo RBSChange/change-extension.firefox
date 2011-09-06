@@ -1,23 +1,22 @@
-<?xml version="1.0"?>
-<RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
-         xmlns:NC="http://home.netscape.com/NC-rdf#"
-         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="urn:mozilla:install-manifest"
-                   em:id="{60e116b0-f84c-11dd-87af-0800200c9a66}"
-                   em:version="1.23"
-                   em:type="2"
-                   em:name="RBS Change Manager"
-                   em:description="Manage RBS Change Backoffice application"
-                   em:creator="RBS Change Dev. Team"
-                   em:homepageURL="http://www.rbschange.fr/"
-                   em:iconURL="chrome://rbschange/skin/changeico.png"
-                   em:optionsURL="chrome://rbschange/content/prefs.xul"       
-                   em:updateURL="http://www.rbschange.fr/static/extension/update.rdf"
-                   em:updateKey="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCRaZZIj+dG0B877rYBPNwj5lQKKHXnzsnlhsEcgHnzxCjnQUg1kdI3/LiShGOpP2xn/1N+a8Xb2lt8CJM9L+g+dOgZBBRwA8ZSLMHQ0HBoSe/NmbLf2mfrWxlQReC4E1a0rRSFl0AQm9bxuhHGLIIJhd5MugnqzEmFvREgXOUeBQIDAQAB">
-    <em:targetApplication RDF:resource="rdf:#$JeP2q2"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="rdf:#$JeP2q2"
-                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
-                   em:minVersion="3.0.3"
-                   em:maxVersion="3.6.*" />
-</RDF:RDF>
+<?xml version="1.0" encoding="UTF-8"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>{60e116b0-f84c-11dd-87af-0800200c9a66}</em:id>
+    <em:type>2</em:type>
+    <em:name>RBS Change Manager</em:name>
+    <em:version>1.35</em:version>
+    <em:creator>RBS Change Dev. Team</em:creator>
+    <em:contributor></em:contributor>
+    <em:description>Manage RBS Change Backoffice application</em:description>
+    <em:homepageURL>http://www.rbschange.fr/</em:homepageURL>
+    <em:iconURL>chrome://rbschange/skin/changeico.png</em:iconURL>
+    <em:optionsURL>chrome://rbschange/content/prefs.xul</em:optionsURL>
+    <em:targetApplication>
+      <Description>
+        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
+        <em:minVersion>3.5</em:minVersion>
+        <em:maxVersion>8.*</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+  </Description>
+</RDF>

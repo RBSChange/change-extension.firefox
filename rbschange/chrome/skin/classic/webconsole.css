@@ -5,6 +5,7 @@ div.cmdresult {
 	overflow:visible;
 	-moz-user-select: text;
 	-moz-user-focus: normal;
+	-moz-box-flex: 1;
 }
 
 span.row_std {

@@ -2,7 +2,8 @@ var ChangeManager =
 {	
 	getXChromeService: function ()
 	{
-	  return Components.classes["@mozilla.org/network/protocol;1?name=xchrome"].getService().wrappedJSObject;
+		ChangeToolKit.debug('ChangeManager.getXChromeService');
+		return Components.classes["@mozilla.org/network/protocol;1?name=xchrome"].getService(Components.interfaces.nsIProtocolHandler).wrappedJSObject;
 	},
 		
 	getIdentifierByPath: function (path)
@@ -126,5 +127,85 @@ var ChangeManager =
 		ChangeToolKit.debug('ChangeManager.test');
 		ChangeToolKit.debug(arg);
 		*/
+	},
+	
+	editContext: null,
+	
+	checkContextMenuDisplay: function()
+	{
+		ChangeToolKit.debug('ChangeManager.checkContextMenuDisplay');	
+		var item = document.getElementById('rbschange-edit-context');
+		
+		var contentDocument = window.top.getBrowser().selectedBrowser.contentDocument;
+		if (contentDocument && contentDocument.body && contentDocument.body.hasAttribute('data-editcontext'))
+		{
+			item.hidden = false;
+			ChangeManager.editContext = contentDocument.body.getAttribute('data-editcontext');
+		}
+		else
+		{
+			item.hidden = true;
+			ChangeManager.editContext = null;
+		}		
+	},
+	
+	openChangeWithContext: function()
+	{
+		var browser = window.top.getBrowser();
+		var baseContext = ChangeManager.editContext.substr(0, ChangeManager.editContext.lastIndexOf('/'));
+		ChangeToolKit.debug('ChangeManager.openChangeWithContext.. ' + baseContext);	
+		var contentDocument = browser.selectedBrowser.contentDocument;
+		var editData = contentDocument.body.getAttribute('data-edit');
+		var parts = editData.split(',');
+		var uri = [parts[0], 'openDocument', parts[1], parts[2]].join(',');
+		
+		ChangeToolKit.debug('Data ' + editData);
+		for (var i = 0; i < browser.browsers.length; i++)
+		{
+			var tabDoc = browser.browsers[i].contentDocument;
+			var tabBaseContext = tabDoc.documentURI.substr(0, tabDoc.documentURI.lastIndexOf('/'));
+			ChangeToolKit.debug('Index ' + i + ' ' + tabBaseContext);
+			if (baseContext == tabBaseContext)
+			{
+				ChangeToolKit.debug('OK ' + editData + ' tab:' + i);
+				browser.selectTabAtIndex(i);
+				browser.mCurrentTab.focus();
+				browser.browsers[i].contentWindow.wrappedJSObject.openActionUri(uri);
+				return;
+			}
+		}
+		ChangeManager.edituri = uri;
+		var tab = browser.addTab("about:blank");
+		browser.moveTabTo(tab, 0);
+		var tabBrowser = browser.getBrowserForTab(tab);
+		browser.addEventListener("load", ChangeManager.checkDispatchOnLoad, true);
+		tabBrowser.loadURI(ChangeManager.editContext);
+		browser.selectTabAtIndex(0);
+		browser.mCurrentTab.focus();
+		
+	},
+	
+	edituri: null,
+	
+	checkDispatchOnLoad: function(event)
+	{
+		if (ChangeManager.edituri)
+		{
+			try 
+			{
+				if (event.originalTarget instanceof XULDocument)
+				{				
+					event.originalTarget.defaultView.wrappedJSObject.openActionUri(ChangeManager.edituri);
+					
+					ChangeManager.edituri = null;
+					var browser = window.top.getBrowser();
+					browser.removeEventListener("load", ChangeManager.checkDispatchOnLoad, true);
+				}
+			}
+			catch (e)
+			{
+				ChangeToolKit.debug('Error in checkDispatchOnLoad : ' + e.toString());
+			}			
+		}
 	}
 }

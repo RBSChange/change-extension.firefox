@@ -8,3 +8,7 @@ overlay chrome://browser/content/browser.xul	chrome://rbschange/content/menuOver
 skin	rbschange	classic/1.0	chrome/skin/classic/
 style	chrome://browser/content/browser.xul	chrome://rbschange/skin/rbschange.css
 style	chrome://global/content/customizeToolbar.xul	chrome://rbschange/skin/rbschange.css
+
+component {6803D375-226F-4777-A8FF-D0022C2F4B40} components/nsChromeExtensionHandler.js
+contract @mozilla.org/network/protocol;1?name=xchrome {6803D375-226F-4777-A8FF-D0022C2F4B40}
+category app-startup xchromehandler @mozilla.org/network/protocol;1?name=xchrome

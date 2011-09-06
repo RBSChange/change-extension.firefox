@@ -44,3 +44,6 @@
 <!ENTITY rbschange.webconsole.header.desc "Execution de commandes change">
 <!ENTITY rbschange.webconsole.cmdlabel "Commande:">
 <!ENTITY rbschange.webconsole.close "Fermer">
+
+<!ENTITY rbschange.edt "Editer avec change...">
+<!ENTITY rbschange.edt.ttt "Ouvre l'interface d'administraction et edit le document">

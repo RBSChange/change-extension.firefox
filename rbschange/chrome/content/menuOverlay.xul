@@ -12,4 +12,8 @@
 	<menupopup id="menu_ToolsPopup">
 		<menuitem label="&rbschange.menu.title;" oncommand="openChangeLogin();" accesskey="c" key="open-change-key" />
 	</menupopup>
+	
+	<popup id="contentAreaContextMenu">
+		<menuitem label="&rbschange.edt;" tooltiptext="&rbschange.edt.ttt;" id="rbschange-edit-context" oncommand="ChangeManager.openChangeWithContext()" />
+	</popup>
 </overlay>
