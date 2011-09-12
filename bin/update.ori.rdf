@@ -335,6 +335,21 @@
             </em:targetApplication>
           </RDF:Description>
         </RDF:li>
+        <RDF:li>
+          <RDF:Description>
+            <em:version>1.24</em:version>
+            <em:targetApplication>
+              <RDF:Description>
+                <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+                <em:minVersion>3.0.3</em:minVersion>
+                <em:maxVersion>4.0.*</em:maxVersion>
+                <em:updateLink>http://www.rbschange.fr/static/extension/rbschange1.24.xpi</em:updateLink>
+                <em:updateHash>sha1:2F4B1AC0CF363DF24D9B2FF0C7D0F7FD46A95C8D</em:updateHash>
+                <em:updateInfoURL>http://www.rbschange.fr/static/extension/rbschange.xhtml</em:updateInfoURL>
+              </RDF:Description>
+            </em:targetApplication>
+          </RDF:Description>
+        </RDF:li>
       </RDF:Seq>
     </em:updates>
   </RDF:Description>

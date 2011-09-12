@@ -124,10 +124,19 @@ var ChangeToolKit =
 			}
 		}
 		this.debug('Info ChangeToolKit.getJSObject get URI: ' + uri);
-		var req = new XMLHttpRequest();
-		req.open('POST', uri, false);
-		req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-		req.send(data);	
+		try
+		{
+			var req = new XMLHttpRequest();
+			req.open('POST', uri, false);
+			req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+			req.send(data);	
+		}
+		catch (e)
+		{
+			this.debug('Unable to send Request: ' + uri);
+			return null;
+		}
+		
 		if (req.status == 200)
 		{
 			try

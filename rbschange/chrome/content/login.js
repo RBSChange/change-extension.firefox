@@ -63,7 +63,7 @@ function openHistory()
 		if (currentURL != '' && getInHistory(currentURL) == null)
 		{
 			document.getElementById('url').value = ''
-			document.getElementById('browserCompatibility').value = '';
+			setBrowsersCompatibilityMsg('', 'info');
 			if (!document.getElementById('persistidentity').checked)
 			{
 				document.getElementById('password').value = '';
@@ -77,13 +77,27 @@ function openHistory()
 	}	
 }
 
+function setBrowsersCompatibilityMsg($msg, $type)
+{
+	var browserCompatibility = document.getElementById('browserCompatibility');
+	browserCompatibility.value = $msg;
+	if ($type == 'error')
+	{
+		browserCompatibility.setAttribute('style', 'color:red');
+	}
+	else
+	{
+		browserCompatibility.removeAttribute('style');
+	}
+}
+
 function checkBrowsersCompatibility(url)
 {
 	if (url == checkedUrl) {return;}
 	checkedUrl = url;
 	
 	var msg = document.getElementById('error_versionchecking').value;
-	document.getElementById('browserCompatibility').value = msg;
+	setBrowsersCompatibilityMsg(msg, 'info');
 	
 	var testUrl = url + '/xchrome_controller.php?module=uixul&action=GetBrowsersCompatibility&ct=' + new Date().getTime();
 	var result = ChangeToolKit.getJSObject(testUrl, {});
@@ -110,11 +124,11 @@ function checkBrowsersCompatibility(url)
 			{
 				var msg = document.getElementById('error_wrongversion').value;
 				msg = msg.replace(/navversion/, navVersion).replace(/lastversion/, lastversion);
-				document.getElementById('browserCompatibility').value = msg;
+				setBrowsersCompatibilityMsg(msg, 'info');
 			}
 			else
 			{
-				document.getElementById('browserCompatibility').value = '';
+				setBrowsersCompatibilityMsg('', 'info');
 			}
 			
 			if (versions.uiprotocol)
@@ -150,7 +164,7 @@ function checkBrowsersCompatibility(url)
 		else
 		{
 			var msg = document.getElementById('error_unknowversion').value;
-			document.getElementById('browserCompatibility').value = msg;
+			setBrowsersCompatibilityMsg(msg, 'error');
 			document.getElementById('connexiontype').selectedIndex = 0;
 			updateUILang(null);
 		}
@@ -158,7 +172,7 @@ function checkBrowsersCompatibility(url)
 	else
 	{
 		var msg = document.getElementById('error_unknowversion').value;
-		document.getElementById('browserCompatibility').value = msg;
+		setBrowsersCompatibilityMsg(msg, 'error');
 		document.getElementById('connexiontype').selectedIndex = 0;
 		updateUILang(null);
 		return false;
@@ -363,7 +377,7 @@ function doLogin()
 			else
 			{
 				var msg = document.getElementById('error_notchangeserver').value;
-				document.getElementById('browserCompatibility').value = msg;
+				setBrowsersCompatibilityMsg(msg, 'error');
 			}
 			return false;
 		}
@@ -436,7 +450,7 @@ function doFirstLogin()
 			else
 			{
 				var msg = document.getElementById('error_notchangeserver').value;
-				document.getElementById('browserCompatibility').value = msg;
+				setBrowsersCompatibilityMsg(msg, 'error');
 			}
 			return false;
 		}
