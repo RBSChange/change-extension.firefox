@@ -19,6 +19,10 @@ function onLoginLoad()
 	{
 		document.getElementById('url').value = identifier.autoconnect;
 	}
+	else if (identifier.baseURI)
+	{
+		document.getElementById('url').value = identifier.baseURI;
+	}
 	else
 	{
 		var entry = ChangeToolKit.getLastLoginRegisteredSite();
@@ -62,7 +66,7 @@ function openHistory()
 		var currentURL = document.getElementById('url').value;
 		if (currentURL != '' && getInHistory(currentURL) == null)
 		{
-			document.getElementById('url').value = ''
+			document.getElementById('url').value = '';
 			setBrowsersCompatibilityMsg('', 'info');
 			if (!document.getElementById('persistidentity').checked)
 			{
@@ -232,12 +236,14 @@ function onLoginUpdated()
 {
 	ChangeToolKit.debug('onLoginUpdated');
 	var password = '';
+	var login = '';
+	var info = null;
 	if (document.getElementById('persistidentity').checked)
 	{
-		var login = document.getElementById('login').value;
+		login = document.getElementById('login').value;
 		if (login.length > 0)
 		{
-			var info = getInHistory(checkedUrl);
+			info = getInHistory(checkedUrl);
 			if (info != null)
 			{
 				password = ChangeToolKit.getLoginPassword(info.xpath, login);

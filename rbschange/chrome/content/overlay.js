@@ -40,14 +40,15 @@ function onRBSChangePopupShowing(aEvent)
 
 function onRBSChangeShortOpen(aEvent)
 {
+	var projectId = null;
 	if (aEvent.target.id == 'tbtnChange') 
 	{
-		var projectId = ChangeToolKit.getPreferencesService().getCharPref('rbschange.ext.lastprojectid');
+		projectId = ChangeToolKit.getPreferencesService().getCharPref('rbschange.ext.lastprojectid');
 		ChangeToolKit.debug('onRBSChangeLastShortOpen:' + projectId);
 	}
 	else
 	{
-		var projectId = aEvent.target.getAttribute('value');
+		projectId = aEvent.target.getAttribute('value');
 		ChangeToolKit.debug('onRBSChangeShortOpen:'+projectId);
 	}
 	onRBSChangeOpenByIndex(projectId);
@@ -77,12 +78,16 @@ function onRBSChangeOpenByIndex(projectId)
 			return;
 		}
 	}
-	openChangeLogin();
+	openChangeLogin(identifier);
 }
 
-function openChangeLogin()
+function openChangeLogin(ident)
 {
 	var identifier = {};
+	if (ident != null && ident.baseURI) 
+	{
+		identifier.baseURI = ident.baseURI;
+	}
 	window.openDialog('chrome://rbschange/content/login.xul', 'login', 'chrome,extrachrome,resizable,centerscreen,width=650,height=300', identifier);
 }
 
@@ -165,33 +170,55 @@ function rbsChangeCheckPageContent(doc)
 			var url = elem.getAttribute('url');
 			if (url)
 			{
-				ChangeToolKit.debug(doc.baseURI);
-				var match = doc.URL.match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
+				var location = doc.defaultView.location;
+				var xchromeurl = location.toString();
+				ChangeToolKit.debug('rbsChangeCheckPageContent:'  + xchromeurl);
+				var identifier = null;
+				var match = xchromeurl.match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
 				if (match)
 				{
-					var identifier = ChangeManager.getIdentifierByPath(match[1]);
-					if (identifier)
+					identifier = ChangeManager.getIdentifierByPath(match[1]);
+				}
+				else if (elem.hasAttribute('data-xchromeurl'))
+				{
+					xchromeurl = elem.getAttribute('data-xchromeurl');
+					match = xchromeurl.match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
+					if (match)
 					{
-						var result = ChangeManager.login(identifier.uri, identifier.login, identifier.password, identifier.uilang);
-						if (result != null && result['ok'] == identifier.path)
-						{
-							ChangeToolKit.getPreferencesService().setCharPref('rbschange.ext.lastprojectid', identifier.path);
-							var btn = document.getElementById('tbtnChange');
-							if (btn)
-							{
-								btn.setAttribute('tooltiptext', identifier.baseURI);
-							}
-							
-							if (result['OAuth'] != null)
-							{
-								ChangeToolKit.updateOAuthInfo(identifier.path, identifier.login, result['OAuth']);
-							}	
-							ChangeToolKit.debug('Reload : ' + doc.baseURI);
-							doc.defaultView.location.href = doc.baseURI;
-							return;
-						}
+						identifier = ChangeManager.getIdentifierByPath(match[1]);
 					}
 				}
+				
+				if (identifier)
+				{
+					var result = ChangeManager.login(identifier.uri, identifier.login, identifier.password, identifier.uilang);
+					if (result != null && result['ok'] == identifier.path)
+					{
+						ChangeToolKit.getPreferencesService().setCharPref('rbschange.ext.lastprojectid', identifier.path);
+						var btn = document.getElementById('tbtnChange');
+						if (btn)
+						{
+							btn.setAttribute('tooltiptext', identifier.baseURI);
+						}
+						
+						if (result['OAuth'] != null)
+						{
+							ChangeToolKit.updateOAuthInfo(identifier.path, identifier.login, result['OAuth']);
+						}	
+						ChangeToolKit.debug('Reload : ' + location.toString() + ' / ' + xchromeurl);
+						if (xchromeurl == location.toString())
+						{
+							doc.defaultView.location.reload(true);
+						}
+						else
+						{
+							doc.defaultView.location.replace(xchromeurl + location.hash);
+						}
+						return;
+					}
+				}
+
+				
 				ChangeToolKit.debug('ChangePageLoad : ' +  elem.getAttribute('url'));
 				elem.setAttribute('style', 'display:none');
 				var identifier = {autoconnect: url};
@@ -256,29 +283,9 @@ function rbsChangeInitialize()
 				ChangeToolKit.delayedExtensionStartUp = null;
 			}
 		    ChangeToolKit.debug('RBSChangeExtensionStartEvent...');
-			var elem = event.target;
+		    var elem = event.target;
 			var doc = elem.ownerDocument;
-			var match = doc.URL.match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
-			if (match)
-			{
-				ChangeToolKit.debug('rbsChangePageLoad : ' + match[0]);
-				var identifier = ChangeManager.getIdentifierByPath(match[1]);
-				if (identifier)
-				{
-					var result = ChangeManager.login(identifier.uri, identifier.login, identifier.password, identifier.uilang);
-					if (result != null && result['ok'] == identifier.path)
-					{
-						ChangeToolKit.debug('ReloadLoggedxchrom : ' + doc.baseURI);
-						doc.defaultView.location.href = doc.baseURI;
-						return;
-					}
-				}
-			}					
-			var url = elem.getAttribute('url');
-			ChangeToolKit.debug('RBSChangeExtensionStartEvent : ' +  url);			
-			elem.setAttribute('style', 'display:none');
-			var identifier = {autoconnect: url};
-			window.openDialog('chrome://rbschange/content/login.xul', 'login', 'chrome,extrachrome,resizable,centerscreen,width=650,height=300', identifier);
+			rbsChangeCheckPageContent(doc);
 		}, true, true); 
 		
 		var cacm = document.getElementById('contentAreaContextMenu');
@@ -296,7 +303,7 @@ function rbsChangeRegisterAll()
 {
 	ChangeToolKit.debug('RBSChange Register xchrome channel.');
 	var prefs = ChangeToolKit.getPreferencesService();	
-	var lastProjectId = prefs.getCharPref('rbschange.ext.lastprojectid')
+	var lastProjectId = prefs.getCharPref('rbschange.ext.lastprojectid');
 	var removeCookies = prefs.getCharPref('rbschange.ext.refreshcookies');	
 	var entries = ChangeToolKit.getRegisteredSitesHistory();
 	for (var i = 0; i < entries.length; i++)
@@ -335,7 +342,7 @@ function rbsChangeCheckPref()
 		{
 			if (prefs.getCharPref('extensions.rbschange.debug') == 'true')
 			{
-				prefs.setBoolPref('rbschange.ext.debug', true)
+				prefs.setBoolPref('rbschange.ext.debug', true);
 			}
 			prefs.clearUserPref('extensions.rbschange.debug');
 		}

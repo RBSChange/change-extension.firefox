@@ -96,7 +96,7 @@ function checkBrowsersCompatibility(url, navVersion) {
 					return 'chrome://rbschange/skin/change_17.png';
 				}
 			}
-			return 'chrome://global/skin/icons/warning-16.png'
+			return 'chrome://global/skin/icons/warning-16.png';
 		} else {
 			return 'chrome://global/skin/icons/error-16.png';
 		}

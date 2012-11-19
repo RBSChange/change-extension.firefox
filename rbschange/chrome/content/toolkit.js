@@ -1,5 +1,4 @@
-var ChangeToolKit = 
-{
+var ChangeToolKit = {
 	trim: function(s) 
 	{
 	  if (!s || s=="") return "";
@@ -13,6 +12,7 @@ var ChangeToolKit =
 		if (typeof a == 'string') {return a.replace(/\x19/g, "");}
 		return a;
 	},
+	
 	debugactive : null,
 	
 	debug: function(str)
@@ -187,22 +187,6 @@ var ChangeToolKit =
 		}
 		return result.join("&");
 	},
-	
-	copyToClipboard: function(text) 
-	{
-		if (text) 
-		{
-			try 
-			{
-				const clipboardHelper = Components.classes["@mozilla.org/widget/clipboardhelper;1"].getService(Components.interfaces.nsIClipboardHelper);
-				clipboardHelper.copyString(text);
-	      	} 
-	      	catch(e) 
-	      	{
-	         // that's too bad
-	      	}
-   		}
-   	},
    	
    	preferencesService: null,
 	

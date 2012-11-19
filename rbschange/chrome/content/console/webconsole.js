@@ -34,12 +34,11 @@ function convertArgsStrToArray(argstr)
 			args.push(val);
 		}
 	}	
-	return args
+	return args;
 }
 
 
 function sendCommand() {
-	var accessor = webconsoledata.change;
 	var cmdText = document.getElementById('webcmd').value;
 	var args = ['-h'];
 	if (cmdText != '-h')
@@ -154,7 +153,7 @@ function onWebconsoleLoad()
 	
 	var message = getDefaultMessage();
 	message.parameters.push(["argv[0]", 'getCommands']);
-	sendMessage(message, onCommandsLoaded)
+	sendMessage(message, onCommandsLoaded);
 }
 
 function onCommandsLoaded(request)

@@ -4,7 +4,7 @@
     <em:id>{60e116b0-f84c-11dd-87af-0800200c9a66}</em:id>
     <em:type>2</em:type>
     <em:name>RBS Change Manager</em:name>
-    <em:version>1.35</em:version>
+    <em:version>1.40</em:version>
     <em:creator>RBS Change Dev. Team</em:creator>
     <em:contributor></em:contributor>
     <em:description>Manage RBS Change Backoffice application</em:description>
@@ -15,7 +15,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
         <em:minVersion>3.5</em:minVersion>
-        <em:maxVersion>8.*</em:maxVersion>
+        <em:maxVersion>16.*</em:maxVersion>
       </Description>
     </em:targetApplication>
   </Description>

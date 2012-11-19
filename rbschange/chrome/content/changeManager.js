@@ -105,7 +105,7 @@ var ChangeManager =
 			return;
 		}
 
-	    var pm = Components.classes["@mozilla.org/permissionmanager;1"].getService(Components.interfaces.nsIPermissionManager)
+	    var pm = Components.classes["@mozilla.org/permissionmanager;1"].getService(Components.interfaces.nsIPermissionManager);
 	    var enumerator = pm.enumerator;
 	    while (enumerator.hasMoreElements()) 
 	    {
