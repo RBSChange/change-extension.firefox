@@ -305,14 +305,15 @@ function rbsChangeInitialize()
 					var b = getBrowser().getBrowserForTab(tab);
 					try
 					{
-						var match2 = b.currentURI.spec.match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
-						if (match2 && match2[0] == match[0])
+						var location = b.contentWindow.location;
+						var match2 = location.toString().match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
+						if (match2 && match2[0] == match[0] && location.hash)
 						{
-							if (url == b.currentURI.spec)
+							if (url == location.toString())
 							{
-								b.contentWindow.location.hash = '#';
+								location.hash = '#';
 							}
-							b.contentWindow.location.replace(url);
+							location.replace(url);
 							getBrowser().selectedTab = tab;
 							return;
 						}
