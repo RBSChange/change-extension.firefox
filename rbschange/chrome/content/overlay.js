@@ -288,6 +288,44 @@ function rbsChangeInitialize()
 			rbsChangeCheckPageContent(doc);
 		}, true, true); 
 		
+		document.addEventListener("RBSChangeOpenDocumentEvent", function(event)
+		{ 
+			ChangeToolKit.debug('RBSChangeOpenDocumentEvent...');
+			var elem = event.target;
+			var doc = elem.ownerDocument;
+			var url = elem.getAttribute('data-xchromeurl');
+			var match = url.match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
+			if (match)
+			{
+				var tabs = getBrowser().tabs;
+				var num = tabs.length;
+				for (var i = 0; i < num; i++)
+				{
+					var tab = tabs[i];
+					var b = getBrowser().getBrowserForTab(tab);
+					try
+					{
+						var match2 = b.currentURI.spec.match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
+						if (match2 && match2[0] == match[0])
+						{
+							if (url == b.currentURI.spec)
+							{
+								b.contentWindow.location.hash = '#';
+							}
+							b.contentWindow.location.replace(url);
+							getBrowser().selectedTab = tab;
+							return;
+						}
+					}
+					catch (e)
+					{
+						ChangeToolKit.debug('RBSChangeOpenDocumentEvent: error');
+					}
+				}
+				getBrowser().selectedTab = getBrowser().addTab(url);
+			}
+		}, true, true);
+		
 		var cacm = document.getElementById('contentAreaContextMenu');
 		ChangeToolKit.debug('contentAreaContextMenu : ' + cacm.id);
 		cacm.addEventListener("popupshowing", ChangeManager.checkContextMenuDisplay, true); 
