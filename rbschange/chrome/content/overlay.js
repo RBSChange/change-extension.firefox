@@ -106,7 +106,7 @@ function onChangeLogin(identifier)
 	{
 		var identifiedProject = ChangeManager.register(identifier);
 		var extension = identifiedProject.extension;
-		extension += 'module=uixul&action=Admin';
+		extension += 'action=Admin&module=uixul';
 		if (identifier.uilang.length > 0)
 		{
 			extension += '&uilang=' + identifier.uilang;
@@ -307,7 +307,7 @@ function rbsChangeInitialize()
 					{
 						var location = b.contentWindow.location;
 						var match2 = location.toString().match(/^xchrome:\/\/rbschange\/content\/ext\/(.+)\//);
-						if (match2 && match2[0] == match[0] && location.hash)
+						if (match2 && match2[0] == match[0])
 						{
 							if (url == location.toString())
 							{

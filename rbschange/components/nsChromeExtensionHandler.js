@@ -79,9 +79,9 @@ ChromeExtensionHandler.prototype = {
 		{
 			// uri in the form of:
 			// xchrome://rbschange/content/ext/prodrbs/
-			var uri_str = uri.spec;	
-			var ext_path = "module=uixul&action=Admin";	
-			if (uri_str.length > this.baseUriLength) 
+			var uri_str = uri.spec;
+			var ext_path = "action=Admin&module=uixul";
+			if (uri_str.length > this.baseUriLength)
 			{
 				ext_path = uri_str.substring(this.baseUriLength);
 				var paramsIndex = ext_path.indexOf('?');

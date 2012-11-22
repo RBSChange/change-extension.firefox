@@ -81,7 +81,7 @@ function onCheckAll() {
 
 function checkBrowsersCompatibility(url, navVersion) {
 	var testUrl = url
-			+ '/xchrome_controller.php?module=uixul&action=GetBrowsersCompatibility&ct='
+			+ '/xchrome_controller.php?action=GetBrowsersCompatibility&module=uixul&ct='
 			+ new Date().getTime();
 	var result = ChangeToolKit.getJSObject(testUrl, {});
 	if (result != null) {

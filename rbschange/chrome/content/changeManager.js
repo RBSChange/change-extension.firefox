@@ -65,14 +65,14 @@ var ChangeManager =
 		ChangeToolKit.debug('ChangeManager.portalRedirect : ' + url + ', ' + login + ', ' + password);
 		var identifier = {uri: url + '/xchrome_controller.php', login: login, password: password};
 		var paramsObject = {login: identifier.login, password: identifier.password};
-		var logUrl = identifier.uri + '?module=users&action=PortalLogin&ct=' + new Date().getTime();
+		var logUrl = identifier.uri + '?action=PortalLogin&module=users&ct=' + new Date().getTime();
 		var b = ChangeToolKit.getJSObject(logUrl, paramsObject);
 		if (b != null && b['ok'] != null)
 		{
 			identifier.path = b['ok'];
 			var identifiedProject = this.register(identifier);
 			var extension = identifiedProject.extension;
-			extension += 'module=uixul&action=Admin';
+			extension += 'action=Admin&module=uixul';
 			return extension;
 		}
 		return null;
@@ -86,7 +86,7 @@ var ChangeManager =
 		{
 			paramsObject.uilang = uilang;
 		}
-		var logUrl = uri + '?module=users&action=ChromeLogin';
+		var logUrl = uri + '?action=ChromeLogin&module=users';
 		return ChangeToolKit.getJSObject(logUrl, paramsObject);
 	},
 	

@@ -103,7 +103,7 @@ function checkBrowsersCompatibility(url)
 	var msg = document.getElementById('error_versionchecking').value;
 	setBrowsersCompatibilityMsg(msg, 'info');
 	
-	var testUrl = url + '/xchrome_controller.php?module=uixul&action=GetBrowsersCompatibility&ct=' + new Date().getTime();
+	var testUrl = url + '/xchrome_controller.php?action=GetBrowsersCompatibility&module=uixul&ct=' + new Date().getTime();
 	var result = ChangeToolKit.getJSObject(testUrl, {});
 	if (result != null)
 	{
@@ -274,7 +274,7 @@ function onResetPassword()
 	if (login != '' && url != '')
 	{
 		var paramsObject = {login: login};
-		var logUrl = url + '/xchrome_controller.php?module=users&action=ResetPassword&ct=' + new Date().getTime();
+		var logUrl = url + '/xchrome_controller.php?action=ResetPassword&module=users&ct=' + new Date().getTime();
 		var b = ChangeToolKit.getJSObject(logUrl, paramsObject);
 		if (b != null && b.status != null)
 		{
@@ -343,7 +343,7 @@ function doLogin()
 	if (identifier.login.length > 0 && identifier.password.length > 0)
 	{
 		var paramsObject = {login: identifier.login, password: identifier.password};
-		var logUrl = identifier.uri + '?module=users&action=ChromeLogin';
+		var logUrl = identifier.uri + '?action=ChromeLogin&module=users';
 		if (identifier.uilang.length > 0)
 		{
 			logUrl += '&uilang=' + identifier.uilang;
@@ -423,7 +423,7 @@ function doFirstLogin()
 	if (identifier.login.length > 0 && identifier.password.length > 0 && adminemail.length > 0)
 	{
 		var paramsObject = {login: identifier.login, password: identifier.password, adminemail: adminemail};
-		var logUrl = identifier.uri + '?module=users&action=ChromeLogin&ct=' + new Date().getTime();
+		var logUrl = identifier.uri + '?action=ChromeLogin&module=users&ct=' + new Date().getTime();
 		var b = ChangeToolKit.getJSObject(logUrl, paramsObject);
 		if (b != null && b['ok'] != null)
 		{		
