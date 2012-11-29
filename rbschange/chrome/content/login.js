@@ -370,7 +370,7 @@ function doLogin()
 				ChangeToolKit.updateOAuthInfo(identifier.path, identifier.login, b['OAuth']);
 			}
 			
-			window.opener.onChangeLogin(identifier);
+			window.opener.onChangeLogin(identifier, document.getElementById('regeneratecache').checked == true);
 		}
 		else
 		{
@@ -445,7 +445,7 @@ function doFirstLogin()
 				ChangeToolKit.updateOAuthInfo(identifier.path, identifier.login, b['OAuth']);
 			}
 			
-			window.opener.onChangeLogin(identifier);
+			window.opener.onChangeLogin(identifier, true);
 		}
 		else
 		{

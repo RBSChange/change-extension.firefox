@@ -11,6 +11,7 @@
 <!ENTITY rbschange.login.form.lang "Language:">
 <!ENTITY rbschange.login.form.openinnewwindow "Open in new Window">
 <!ENTITY rbschange.login.form.persistidentity "Persist identity">
+<!ENTITY rbschange.login.form.regeneratecache "Regenerate UI cache">
 <!ENTITY rbschange.login.form.resetpassword "Lost password">
 <!ENTITY rbschange.login.form.openhistory "Historique...">
 <!ENTITY rbschange.login.form.firstlogintitle "Le compte administrateur de ce site n'a jamais été utilisé. Veuillez le paramétrer :">
@@ -47,3 +48,16 @@
 
 <!ENTITY rbschange.edt "Edit with change...">
 <!ENTITY rbschange.edt.ttt "Open admin interface and edit">
+
+<!ENTITY rbschange.changecache.title "Interface generation">
+<!ENTITY rbschange.changecache.desc "Mise en cache des éléments graphique de l'interface">
+<!ENTITY rbschange.changecache.longdesc "Suite à une modification dans la version 17 de Firefox, il est maintenant nécessaire de pré-charger l'interface plutôt que de la charger au fur et à mesure. Cette opération peut prendre plusieurs minutes suivant la complexité du site mais une fois cette étape passée, l'interface gagne en fluidité. Si vous souhaitez retrouver le fonctionnement précédent, il vous suffit de repasser sur la version 16 de Firefox.">
+<!ENTITY rbschange.changecache.elementcount "Cached components: ">
+<!ENTITY rbschange.changecache.currentelement "Current Element: ">
+
+<!ENTITY rbschange.changecache.defaultelement "-">
+<!ENTITY rbschange.changecache.start "Start generation">
+
+<!ENTITY rbschange.changecache.copyright "RBS Change™ © 2010">
+<!ENTITY rbschange.changecache.copyrightlink "Go to rbs.fr">
+<!ENTITY rbschange.changecache.changelink "Go to rbschange.fr">

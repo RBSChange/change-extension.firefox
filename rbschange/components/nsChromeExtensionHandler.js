@@ -1,271 +1,455 @@
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
-// Mozilla defined
-const nsIIOService = Components.interfaces.nsIIOService;
-const nsIProtocolHandler = Components.interfaces.nsIProtocolHandler;
-const nsIRequest = Components.interfaces.nsIRequest;
-const nsIStandardURL = Components.interfaces.nsIStandardURL;
-const nsIURI = Components.interfaces.nsIURI;
+Components.utils.import("resource://gre/modules/NetUtil.jsm");
+Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
 /*----------------------------------------------------------------------
  * The ChromeExtension Handler
  *----------------------------------------------------------------------
  */
-
 function ChromeExtensionHandler() {
 	this.init();
 }
 
 ChromeExtensionHandler.prototype = {
-	scheme: "xchrome",
-	defaultPort : -1,
-	protocolFlags : nsIProtocolHandler.URI_STD,
-  
-	classDescription: "Chrome Extension Protocol",
-	classID: Components.ID("{6803D375-226F-4777-A8FF-D0022C2F4B40}"),
-	contractID: "@mozilla.org/network/protocol;1?name=xchrome",
+		scheme: "xchrome",
+		defaultPort : -1,
+		protocolFlags : Components.interfaces.nsIProtocolHandler.URI_STD | 
+		Components.interfaces.nsIProtocolHandler.URI_IS_UI_RESOURCE | 
+		Components.interfaces.nsIProtocolHandler.URI_IS_LOCAL_RESOURCE,
 
-	 _xpcom_categories: [{
-		category: "app-startup",
-		service: true
-	}],
+		classDescription: "Chrome Extension Protocol",
+		classID: Components.ID("{6803D375-226F-4777-A8FF-D0022C2F4B40}"),
+		contractID: "@mozilla.org/network/protocol;1?name=xchrome",
 
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISupportsWeakReference, 
-		Components.interfaces.nsIProtocolHandler]),
+		_xpcom_categories: [{
+			category: "app-startup",
+			service: true
+		}],
+
+		QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISupportsWeakReference, 
+		                                       Components.interfaces.nsIProtocolHandler]),
+
+       // Allow storage-Legacy.js to get at the JS object so it can
+       // slap on a few extra properties for internal use.
+        get wrappedJSObject() {
+			return this;
+		},
+
+		init: function () {
+			this.ConsoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);	
+			this._system_principal = null;
+			this._extensions = new Object();
+			
+			var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
+			var branch = prefs.getBranch("extensions.");
+			this._appVersion = parseInt(branch.getCharPref("lastAppVersion").split('.')[0]);
+			
+			branch = prefs.getBranch("rbschange.");
+			this._debug = branch.getBoolPref("ext.debug");
+			
+			this.debug("initialized");
+		},
+
+		registerExtension : function(ext) {
+
+			var ext_spec = "xchrome://" + ext.pkg + "/content/ext/" + ext.path + "/";
+			ext_spec = ext_spec.toLowerCase();
+
+			if (this._extensions[ext_spec] != null) {
+				this.debug("registerExtension Already registered: " + ext_spec);
+				return false;
+			}
+			else {
+				this.debug("registerExtension " + ext_spec + ", " + ext.cacheDir.path);
+				this._extensions[ext_spec] = ext;
+				return true;
+			}
+		},
+
+		// TODO: Specific RBS CHANGE Register
+		registerExtensionChange : function(pkg, path, projectURI) {
+
+			var changeXChromeExtension =  { 
+					cacheDir : null,
+					
+					cacheContentTypeDir : null,
+
+					pkg : pkg, // ex: rbschange
+					path : path, // ex: prodrbs
+					projectURI : projectURI, // ex: http://www.rbs.fr/xul_controller.php
+					
+					getExtraPath : function(xchrome_spec) {
+						var base_spec = this.getXchromeBaseUri();
+						if (xchrome_spec.indexOf(base_spec) == 0)
+						{
+							var ext_path = xchrome_spec.substring(base_spec.length);
+							var paramsIndex = ext_path.indexOf('?');
+							if (paramsIndex != -1) {ext_path = ext_path.substring(paramsIndex + 1);}
+							return ext_path.split('#')[0];
+						}
+						return null;
+					},
+					
+					deleteCache : function() {
+						if (this.cacheDir.exists()) {
+							this.cacheDir.remove(true);
+						}
+					},
+					
+					clearCache : function() {
+						this.deleteCache();
+						this.cacheDir = FileUtils.getDir("TmpD", [this.path], true);
+						this.cacheContentTypeDir = FileUtils.getDir("TmpD", [this.path, 'ct'], true);
+					},
+					
+					getFileCache : function(ext_path) {
+						if (ext_path)
+						{
+							return FileUtils.getFile("TmpD", [this.path, ext_path.replace(/[\\\/:*?"<>|]/g, '_')]);
+						}
+						return null;
+					},
+					
+					getContentTypeFileCache : function(ext_path) {
+						if (ext_path)
+						{
+							return FileUtils.getFile("TmpD", [this.path, 'ct', ext_path.replace(/[\\\/:*?"<>|]/g, '_')]);
+						}
+						return null;
+					},
+					
+					getHttpURI : function(ext_path) {
+						if (ext_path)
+						{
+							var ext_uri_str = this.projectURI + "?" + ext_path;
+							return NetUtil.ioService.newURI(ext_uri_str, null, null);
+						}
+						return null;
+					},
+
+					newChannel : function(uri) { 
+						var uri_str = uri.spec;
+						
+						var ext_path = this.getExtraPath(uri_str);
+						if (ext_path == null) {
+							return null;
+						}
+
+						var ioService = NetUtil.ioService;
 	
-    // Allow storage-Legacy.js to get at the JS object so it can
-    // slap on a few extra properties for internal use.
-    get wrappedJSObject() {
-        return this;
-    },
-	
-  init: function () {
-	this.ConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
-		.getService(Components.interfaces.nsIConsoleService);
-	this.debugOn = false;
-	this.debug("[ChromeExtensionHandler.<init>]");
-	this._system_principal = null;
-	this._extensions = new Object();
-  },
+						var ctfile = this.getContentTypeFileCache(ext_path);
+						var finalfile = this.getFileCache(ext_path);
+						
+						if (finalfile.exists() && ctfile.exists()) 
+						{	
+							var finalChanel = NetUtil.newChannel(finalfile);						
+							var ctfilestream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
+							ctfilestream.init(ctfile, -1, 0, 0);
+							var ct = NetUtil.readInputStreamToString(ctfilestream, ctfilestream.available());
+							ctfilestream.close();
+							
+							finalChanel.contentType = ct;
+							return finalChanel;
+						}
+						else if ((ext_path.indexOf('action=Admin') != -1) && (ext_path.indexOf('module=uixul') != -1))
+						{
+							var chrome_service = ioService.getProtocolHandler("chrome");
+							var chrome_uri_str = "chrome://rbschange/content/cache.xul";
+							var chrome_uri = chrome_service.newURI(chrome_uri_str, null, null);
+							return chrome_service.newChannel(chrome_uri);
+						}
+						
+						var ext_uri_str = this.projectURI  + "?" + ext_path;
 
-  registerExtension : function(ext) {
-    
-    var ext_spec = "xchrome://" + ext.pkg + "/content/ext/" + ext.path + "/";
-    ext_spec = ext_spec.toLowerCase();
-    
-    this.debug("[ChromeExtensionHandler.registerExtension] " + ext_spec);
+						var ext_uri = ioService.newURI(ext_uri_str, null, null);
+						var ext_channel = ioService.newChannelFromURI(ext_uri);
 
-    if (this._extensions[ext_spec] != null) {
-      this.debug("[ChromeExtensionHandler.registerExtension] failed - extension already registered: " + ext_spec);
-      return false;
-    }
-    else {
-      this._extensions[ext_spec] = ext;
-      //this.debug("[ChromeExtensionHandler.registerExtension] extension registered: " + ext_spec);
-      return true;
-    }
-  },
-  
-  // TODO: Specific RBS CHANGE Register
-  registerExtensionChange : function(pkg, path, projectURI) {
-  	//this.debug("[ChromeExtensionHandler.registerExtensionChange] " + pkg + ", " + path + ", " + projectURI);
-  	var changeXChromeExtension	= 
-	{ 
-		pkg : pkg, // ex: rbschange
-		path : path, // ex: prodrbs
-		projectURI : projectURI, // ex: http://www.rbs.fr/xul_controller.php
-		
-		newChannel : function(uri) 
-		{
-			// uri in the form of:
-			// xchrome://rbschange/content/ext/prodrbs/
-			var uri_str = uri.spec;
-			var ext_path = "action=Admin&module=uixul";
-			if (uri_str.length > this.baseUriLength)
-			{
-				ext_path = uri_str.substring(this.baseUriLength);
-				var paramsIndex = ext_path.indexOf('?');
-				if (paramsIndex != -1) 
+						var bstream = ext_channel.open(); 
+					
+						var ostream = FileUtils.openSafeFileOutputStream(finalfile, FileUtils.MODE_CREATE | FileUtils.MODE_WRONLY | FileUtils.MODE_TRUNCATE);
+						var size = 0;
+						var data = '';
+						while ((size = bstream.available()) > 0) 
+						{
+							data = NetUtil.readInputStreamToString(bstream, size);
+							ostream.write(data, size);
+						}
+						
+						FileUtils.closeSafeFileOutputStream(ostream);	
+						bstream.close();
+
+						if (ext_channel instanceof Components.interfaces.nsIHttpChannel)
+						{			
+							var ct = ext_channel.getResponseHeader("Content-Type");	
+							if (ctfile.exists()) {
+								ctfile.remove(false);
+							}
+							var finalChanel = NetUtil.newChannel(finalfile);
+							finalChanel.contentType = ct;
+							return finalChanel;
+						}
+						
+						return null;
+					},
+					
+					newRemoteChannel : function(uri) 
+					{
+						// uri in the form of:
+						// xchrome://rbschange/content/ext/prodrbs/
+						var uri_str = uri.spec;
+						var ext_path = "action=Admin&module=uixul";
+						if (uri_str.length > this.baseUriLength)
+						{
+							ext_path = uri_str.substring(this.baseUriLength);
+							var paramsIndex = ext_path.indexOf('?');
+							if (paramsIndex != -1) 
+							{
+								ext_path = ext_path.substring(paramsIndex + 1);
+							}
+						}
+						var ioService = NetUtil.ioService;
+						
+						var ext_uri_str = this.projectURI + "?" + ext_path;
+						
+						var ext_uri = ioService.newURI(ext_uri_str, null, null);
+						var ext_channel = ioService.newChannelFromURI(ext_uri);
+						return ext_channel;
+					},
+
+					getXchromeBaseUri : function()
+					{
+						return 'xchrome://'+ this.pkg +'/content/ext/'+ this.path +'/';
+					},
+
+					baseUriLength : ('xchrome://'+ pkg +'/content/ext/'+ path +'/').length
+			};
+
+			changeXChromeExtension.cacheDir = FileUtils.getDir("TmpD", [path], true);
+			changeXChromeExtension.cacheContentTypeDir = FileUtils.getDir("TmpD", [path, "ct"], true);
+
+			this.registerExtension(changeXChromeExtension);
+
+			return changeXChromeExtension.getXchromeBaseUri();
+		},
+
+		putInCache : function(ext, extPath, callBack, level) {
+			try {
+				if (extPath)
 				{
-					ext_path = ext_path.substring(paramsIndex + 1);
+					var fileCache = ext.getFileCache(extPath);
+					var contentTypeFileCache = ext.getContentTypeFileCache(extPath);
+					var httpURI = ext.getHttpURI(extPath);
+					
+					var ostream = FileUtils.openSafeFileOutputStream(fileCache, FileUtils.MODE_CREATE | FileUtils.MODE_WRONLY | FileUtils.MODE_TRUNCATE);				 
+					var ext_channel = NetUtil.ioService.newChannelFromURI(httpURI);
+					var istream = ext_channel.open();
+					
+					var size = 0;
+					var data;
+					while ((size = istream.available()) > 0) 
+					{
+						data = NetUtil.readInputStreamToString(istream, size);
+						ostream.write(data, size);
+					}
+					istream.close();
+					FileUtils.closeSafeFileOutputStream(ostream);
+
+					if (ext_channel instanceof Components.interfaces.nsIHttpChannel)
+					{
+						if (ext_channel.responseStatus == 200)
+						{
+							var ct = ext_channel.getResponseHeader("Content-Type");
+							var ctfilestream = FileUtils.openSafeFileOutputStream(contentTypeFileCache, FileUtils.MODE_CREATE | FileUtils.MODE_WRONLY | FileUtils.MODE_TRUNCATE);
+							ctfilestream.write(ct, ct.length);
+							FileUtils.closeSafeFileOutputStream(ctfilestream);
+							if ('putInCacheUICallBack' in ext) {
+								ext.putInCacheUICallBack(ext, extPath, ct);
+							}
+							if (callBack) {
+								callBack(ext, level, fileCache);
+							}
+						}
+					}
+				}
+				else
+				{
+					if (callBack) {callBack(ext, level, null);}
+				}
+			} catch (e) {
+				this.debug("putInCache " + e.name + ' ' + e.message);
+			}
+		},
+		
+		putInCacheCallBack : function(ext, level, file) {
+			if (level < 5 && file != null && file.exists() && file.isReadable()) {
+				try {
+				
+					var istream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
+					istream.init(file, 0x01, 420, 0);
+					istream.QueryInterface(Components.interfaces.nsILineInputStream);
+					
+					var r = new RegExp(""); r.compile(ext.getXchromeBaseUri() + "([^\")\\s#]*)", "g");
+
+					var line = {}, hasmore, s, m, i, xchrome_spec, extpath, tf;
+					var uriArray = {};
+					var countURI = 0;
+					do {
+						hasmore = istream.readLine(line);
+						s = line.value;
+						m = s.match(r);
+						if (m != null) {
+						   for (i = 0; i < m.length; i++) {
+							   xchrome_spec = m[0].replace(/&amp;/g, '&');
+							   extpath = ext.getExtraPath(xchrome_spec);
+							   if (extpath) {
+								   uriArray[extpath] = extpath;
+								   countURI++;
+							   }
+						   }
+						}
+					} while (hasmore);			
+					istream.close();
+					
+					if (countURI) {
+						
+						var me = this;
+						var callback = function(ext, level, file) {me.putInCacheCallBack(ext, level, file);};
+						
+						for each (var extpath in uriArray) {
+							tf = ext.getContentTypeFileCache(extpath);
+							if (tf != null && tf.exists() == false) {
+								this.putInCache(ext, extpath, callback, (level + 1));
+							}
+						}
+					}
+				} catch (e) {
+					this.debug("putInCacheCallBack " + e.name + ' ' + e.message);
 				}
 			}
-			var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService();
-			ioService = ioService.QueryInterface(Components.interfaces.nsIIOService);
-			
-			var ext_uri_str = this.projectURI;
-			if (ext_path.length > 0)
-			{
-			 	ext_uri_str += "?" + ext_path;
-			}
-			
-			var ext_uri = ioService.newURI(ext_uri_str, null, null);
-			var ext_channel = ioService.newChannelFromURI(ext_uri);
-			return ext_channel;
 		},
 		
-		getXchromeBaseUri : function()
-		{
-			return 'xchrome://'+ this.pkg +'/content/ext/'+ this.path +'/';
+		generateCache : function(xchromeURI, putInCacheUICallBack) {
+			var xchrome_spec = xchromeURI.spec;
+			var ext_spec = null;
+			var me = this;
+			var callback = function(ext, level, file) {me.putInCacheCallBack(ext, level, file);};
+			
+			for (ext_spec in this._extensions) {
+				var ext = this._extensions[ext_spec];				
+				if (xchrome_spec.indexOf(ext_spec) == 0) {
+					ext.clearCache();
+					ext.putInCacheUICallBack = putInCacheUICallBack;
+					var extpath = ext.getExtraPath(xchrome_spec);
+					this.putInCache(ext, extpath, callback, 0);
+					return;
+				}
+			}
 		},
-				
-		baseUriLength : ('xchrome://'+ pkg +'/content/ext/'+ path +'/').length
-	};
-	
-	this.registerExtension(changeXChromeExtension);
-	
-	//this.debug('[ChromeExtensionHandler.registerExtensionChange] registered('+changeXChromeExtension.baseUriLength+', '+changeXChromeExtension.getXchromeBaseUri()+')');
-	
-	return changeXChromeExtension.getXchromeBaseUri();
-  },
-  
-  getRegisteredExtensionChange : function(pkg, path) {
-	  for (var ext_spec in this._extensions) {
-	     var ext = this._extensions[ext_spec];
-	     if (ext.pkg === pkg && ext.path === path) 
-	     {
-	    	 return ext;
-	     }
-	  }
-	  return null;
-  },
-  
-  unregisterExtensionChange : function(ext) {  
-	  for (var ext_spec in this._extensions) {
-	     if (this._extensions[ext_spec] === ext) 
-	     {
-	    	 delete this._extensions[ext_spec];
-	    	 return;
-	     }
-	  }
-  },
-  
-  allowPort : function(port, scheme) {
-    //this.debug("[ChromeExtensionHandler.allowPort]");
-    return false;
-  },
-  
-  newURI : function(spec, charset, baseURI) {
-    //this.debug("[ChromeExtensionHandler.newURI] " + spec);
-      
-    var new_url = Components.classes["@mozilla.org/network/standard-url;1"].createInstance(nsIStandardURL);
-    new_url.init(1, -1, spec, charset, baseURI);    
-    
-    var new_uri = new_url.QueryInterface(nsIURI);
-    return new_uri;
-  },
-  
-  newChannel : function(uri) {
-    //this.debug("[ChromeExtensionHandler.newChannel] new channel requested for: " + uri.spec);
+		
+		getRegisteredExtensionChange : function(pkg, path) {
+			for (var ext_spec in this._extensions) {
+				var ext = this._extensions[ext_spec];
+				if (ext.pkg === pkg && ext.path === path) 
+				{
+					return ext;
+				}
+			}
+			return null;
+		},
 
-    var chrome_service = Components.classesByID["{61ba33c0-3031-11d3-8cd0-0060b0fc14a3}"].getService();
-    chrome_service = chrome_service.QueryInterface(nsIProtocolHandler);
+		unregisterExtensionChange : function(ext) {  
+			for (var ext_spec in this._extensions) {
+				if (this._extensions[ext_spec] === ext) 
+				{
+					delete this._extensions[ext_spec];
+					return;
+				}
+			}
+		},
 
-    var new_channel = null;
-    
-    try {
-      var uri_string = uri.spec.toLowerCase();
+		allowPort : function(port, scheme) {
+			return false;
+		},
 
-      for (ext_spec in this._extensions) {
-        var ext = this._extensions[ext_spec];
-        
-        if (uri_string.indexOf(ext_spec) == 0) {
-         //this.debug("[ChromeExtensionHandler.newChannel] matched to registered extension: " + ext_spec);
+		newURI : function(spec, charset, baseURI) {
+			var new_url = Components.classes["@mozilla.org/network/standard-url;1"].createInstance(Components.interfaces.nsIStandardURL);
+			new_url.init(1, -1, spec, charset, baseURI);		
+			var new_uri = new_url.QueryInterface(Components.interfaces.nsIURI);
+			return new_uri;
+		},
 
-          if (this._system_principal == null) {
-            //this.debug("[ChromeExtensionHandler.newChannel] no system principal cached");
+		getExtensionBySpec : function(spec) {
+			var uri_string = spec.toLowerCase();
+			var ext_spec = null;
+			for (ext_spec in this._extensions) {
+				var ext = this._extensions[ext_spec];
+				if (uri_string.indexOf(ext_spec) == 0) {
+					return ext;
+				}
+			}
+			return null
+		},
+		
+		newChannel : function(uri) {
+			try {
 
-            var ioService = Components.classesByID["{9ac9e770-18bc-11d3-9337-00104ba0fd40}"].getService();
-            ioService = ioService.QueryInterface(nsIIOService);
+				if (this._system_principal == null) {
+					this.debug("Caching system principal ....");
 
-			// Dummy chrome URL used to obtain a valid chrome channel
-			// This one was chosen at random and should be able to be
-			// substituted
-			// for any other well known chrome URL in the browser installation
-            var chrome_uri_str = "chrome://global/content/bindings/browser.xml";
+					var chrome_service = NetUtil.ioService.getProtocolHandler("chrome");
 
-            //this.debug("[ChromeExtensionHandler.newChannel] spoofing chrome channel to URL: " + chrome_uri_str);
-            
-            var chrome_uri = chrome_service.newURI(chrome_uri_str, null, null);
-            var chrome_channel = chrome_service.newChannel(chrome_uri);
+					var chrome_uri_str = "chrome://rbschange/content/changeManager.js";
+					var chrome_uri = chrome_service.newURI(chrome_uri_str, null, null);
+					var chrome_channel = chrome_service.newChannel(chrome_uri);
 
-            //this.debug("[ChromeExtensionHandler.newChannel] retrieving system principal from chrome channel");
-            
-            this._system_principal = chrome_channel.owner;
+					this._system_principal = chrome_channel.owner;
 
-            var chrome_request = chrome_channel.QueryInterface(nsIRequest);
-            chrome_request.cancel(0x804b0002);
-            
-            //this.debug("[ChromeExtensionHandler.newChannel] system principal is cached");
-            
-          }
+					var chrome_request = chrome_channel.QueryInterface(Components.interfaces.nsIRequest);
+					chrome_request.cancel(0x804b0002);
+				}
 
-          //this.debug("[ChromeExtensionHandler.newChannel] retrieving extension channel for: " + ext_spec);
-          
-          var ext_channel = ext.newChannel(uri);
+				var uri_string = uri.spec.toLowerCase();
+				var ext_spec = null;
+				for (ext_spec in this._extensions) {
+					var ext = this._extensions[ext_spec];
+					if (uri_string.indexOf(ext_spec) == 0) {
+						
+						var ext_channel = (this._appVersion >= 17) ? ext.newChannel(uri) : ext.newRemoteChannel(uri);
+						if (ext_channel)
+						{
+							this.debug("newChannel: " + uri_string);
+							ext_channel.owner = this._system_principal;
+							ext_channel.originalURI = uri;
+							return ext_channel;
+						}
+						else
+						{
+							this.debug("newChannel not found: " + uri_string);
+						}
+						throw Components.results.NS_ERROR_FAILURE;
+					}
+				}
 
-          if (this._system_principal != null) {
-            //this.debug("[ChromeExtensionHandler.newChannel] applying cached system principal to extension channel");
-            
-            ext_channel.owner = this._system_principal;
-          }
-          else {
-            //this.debug("[ChromeExtensionHandler.newChannel] no cached system principal to apply to extension channel");
-          }
+				throw Components.results.NS_ERROR_FAILURE;
+			} catch (e) {
+				this.debug("newChannel NS_ERROR_FAILURE " + e.name + ' ' + e.message);
+				throw Components.results.NS_ERROR_FAILURE;
+			}
+		},
 
-          ext_channel.originalURI = uri;
-
-          //this.debug("[ChromeExtensionHandler.newChannel] returning extension channel for: " + ext_spec);
-          
-          return ext_channel;
-
-        }
-
-      }
-    
-      //this.debug("[ChromeExtensionHandler.newChannel] passing request through to ChromeProtocolHandler::newChannel");
-      //this.debug("[ChromeExtensionHandler.newChannel] requested uri = " + uri.spec);
-      
-      if (uri_string.indexOf("chrome") != 0) {
-        uri_string = uri.spec;
-        uri_string = "chrome" + uri_string.substring(uri_string.indexOf(":"));
-        
-        //this.debug("[ChromeExtensionHandler.newChannel] requested uri fixed = " + uri_string);
-        
-        uri = chrome_service.newURI(uri_string, null, null);
-        
-        //this.debug("[ChromeExtensionHandler.newChannel] requested uri canonified = " + uri.spec);
-        
-      }
-      
-      new_channel = chrome_service.newChannel(uri);
-      
-    } catch (e) {
-      //this.debug("[ChromeExtensionHandler.newChannel] error - NS_ERROR_FAILURE");
-      
-      throw Components.results.NS_ERROR_FAILURE;
-    }
-    
-    return new_channel;
-  },
-    
-    debug : function (str)
-    {
-      if (this.debugOn) { 
-    	dump("XCHROME: " + str + "\n");
-        this.ConsoleService.logStringMessage("XCHROME:" + str);
-      }
-    }
+		debug : function (str)
+		{
+			if (this._debug) { 
+				dump("XCHROME: " + str + "\n");
+				this.ConsoleService.logStringMessage("XCHROME:" + str);
+			}
+		}
 };
 
 
 let components = [ChromeExtensionHandler];
 
-/**
- * XPCOMUtils.generateNSGetFactory was introduced in Mozilla 2 (Firefox 4).
- * XPCOMUtils.generateNSGetModule is for Mozilla 1.9.2 (Firefox 3.6).
- */
 if (XPCOMUtils.generateNSGetFactory)
-    var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
+	var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
 else
-    var NSGetModule = XPCOMUtils.generateNSGetModule(components);
+	var NSGetModule = XPCOMUtils.generateNSGetModule(components);

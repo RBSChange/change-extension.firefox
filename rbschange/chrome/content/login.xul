@@ -61,6 +61,7 @@
 		</deck>
 		
 		<checkbox label="&rbschange.login.form.persistidentity;" id="persistidentity" persist="checked"/>
+		<checkbox label="&rbschange.login.form.regeneratecache;" id="regeneratecache" />
 		<checkbox label="&rbschange.login.form.openinnewwindow;" id="openinnewwindow" persist="checked"/>
 
 		<hbox collapsed="true">

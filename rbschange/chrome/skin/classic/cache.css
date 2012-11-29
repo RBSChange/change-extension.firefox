@@ -1,0 +1,99 @@
+@CHARSET "UTF-8";
+img{
+	border: 0;
+	vertical-align: middle;
+}
+.body {
+	background: linear-gradient(#4e4a49, #383433);
+	font-family: "Trebuchet MS", verdana, arial, sans-serif;
+	margin: 0;
+	padding: 0;
+	min-height: 500px;
+
+	width: 100%;
+	text-align: center;
+	color: white;
+	font-size: 16px;
+}
+
+.header {
+	height: 39px;
+	background: #9C9998;
+	padding-top: 1px;
+	border-top: 1px #000 solid;
+	border-bottom: 1px #000 solid;
+}
+
+.header span {
+	line-height: 39px;
+}
+
+grid.content {
+	width: 640px;
+	text-align: left;
+}
+grid.content label {
+	padding: 0;
+	margin: 0;
+}
+
+#extpath {
+	font-size: 0.7em;
+}
+
+h1 {
+	background: linear-gradient(#6E6C6D, #9C9998);
+	color: #393534;
+	text-transform: uppercase;
+	margin: 0 auto;
+	padding: 0;
+	font-size: 18px;
+	line-height : 39px;
+	text-align: center;
+	line-height: 39px; 
+	text-align : center;
+	text-shadow: 1px 2px 1px #b4b0af;
+}
+
+p {
+	width: 640px;
+	margin: auto;
+	text-align: justify;
+}
+
+a {
+	color: #AAA;
+	text-decoration: none;	
+}
+
+a:hover {
+	color: #CCC;
+	text-decoration: underline;	
+}
+
+button {
+	-moz-appearance: none;
+	background: #CCC;
+	color: #333;
+	font-weight: bold;
+	padding: 5px 10px;
+	border-radius: 5px;
+	border: 1px #999 solid;
+}
+
+button:hover:not([disabled="true"]) {
+	color: #444;
+	background: #DDD;
+	text-shadow: 0px 0px 20px #FFF;
+}
+
+button[disabled="true"] {
+	background: #AAA;
+	color: #666;
+}
+
+p.copyright {
+	padding-top: 50px;
+	text-align: center;
+	font-size: 10px;
+}

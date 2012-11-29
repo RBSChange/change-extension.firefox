@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://rbschange/skin/cache.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://rbschange/locale/rbschange.dtd">
+<window onload="onCacheLoad();" id="changecache" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+	xmlns:html="http://www.w3.org/1999/xhtml" xmlns:h="http://www.w3.org/1999/xhtml" title="&rbschange.changecache.title;">
+	<vbox flex="1" class="body">
+		<html:div class="header">
+			<html:h1>&rbschange.changecache.title;</html:h1>
+		</html:div>
+		<html:div class="content">
+			<html:a href="http://www.rbschange.fr" title="&rbschange.changecache.changelink;" hreflang="fr"><html:img src="chrome://rbschange/skin/www.rbschange.png"/></html:a>
+			<html:h2>&rbschange.changecache.desc;</html:h2>
+			<html:p>&rbschange.changecache.longdesc;</html:p>
+		</html:div>
+		<spacer style="height: 20px;" />
+		<hbox>
+			<spacer flex="1" />
+			<grid class="content">
+				<rows>
+					<row>
+						<label value="&rbschange.changecache.elementcount;"/>
+						<label id="elementcount" value="0" flex="1"/>
+					</row>
+					<row align="baseline">
+						<label value="&rbschange.changecache.currentelement;"/>
+						<label id="extpath" value="&rbschange.changecache.defaultelement;" flex="1" crop="center" />
+					</row>
+				</rows>
+			</grid>
+			<spacer flex="1" />
+		</hbox>
+		<spacer style="height: 20px;" />
+		<hbox>
+			<spacer flex="1" />
+			<button id="startcachegeneration" label="&rbschange.changecache.start;" oncommand="onGenerateCache(this);"/>
+			<spacer flex="1" />
+		</hbox>
+		<html:p class="copyright">&rbschange.changecache.copyright; <html:a href="http://www.rbs.fr" title="&rbschange.changecache.copyrightlink;" hreflang="fr">Ready Business System</html:a></html:p>
+	</vbox>
+<script type="text/javascript">
+<![CDATA[
+Components.utils.import("resource://gre/modules/NetUtil.jsm");
+
+function onCacheLoad() {
+	if (window.location.protocol != 'xchrome:') {
+		document.getElementById('startcachegeneration').disabled = true;
+	}
+}
+
+function onGenerateCacheUpdateUI(ext, ext_path, contentType) {
+	var elem = document.getElementById('elementcount');
+	elem.value = parseInt(elem.value) + 1;
+	document.getElementById('extpath').value = ext_path;
+}
+
+function onGenerateCache(button) {
+	button.disabled = true;
+	
+	document.getElementById('elementcount').value = '0';	
+	var spec = window.location.toString();
+	var xchrome_service = NetUtil.ioService.getProtocolHandler("xchrome").wrappedJSObject;
+	var ext = xchrome_service.getExtensionBySpec(spec);
+	
+	if (ext) {
+		var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
+		var maxruntime = prefs.getIntPref('dom.max_chrome_script_run_time');
+		prefs.setIntPref('dom.max_chrome_script_run_time', 0);
+	
+		var uri = xchrome_service.newURI(spec, null, null);
+		xchrome_service.generateCache(uri, onGenerateCacheUpdateUI);
+		
+		prefs.setIntPref('dom.max_chrome_script_run_time', maxruntime);
+		
+		var totalCached = parseInt(document.getElementById('elementcount').value);
+		if (totalCached < 10) {
+			ext.clearCache();
+		}
+	}
+	document.getElementById('extpath').value = '.';
+	
+	window.setTimeout(function() {
+		button.disabled = false;
+		window.location.reload(true);
+	}, 1000)
+}
+]]>
+</script>
+</window>
