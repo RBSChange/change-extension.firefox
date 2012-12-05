@@ -21,7 +21,7 @@ function onPrefsLoad() {
 	}
 
 	var startMode = ChangeToolKit.getPreferencesService()
-			.getCharPref('rbschange.ext.startmode');
+			.getCharPref('extensions.rbschange.ext.startmode');
 	if (startMode != 'event') {
 		document.getElementById('admindetection').checked = false;
 	} else {
@@ -33,10 +33,10 @@ function doSave() {
 	saveHistory();
 	if (document.getElementById('admindetection').checked) {
 		ChangeToolKit.getPreferencesService().setCharPref(
-				'rbschange.ext.startmode', 'event');
+				'extensions.rbschange.ext.startmode', 'event');
 	} else {
 		ChangeToolKit.getPreferencesService().setCharPref(
-				'rbschange.ext.startmode', 'all');
+				'extensions.rbschange.ext.startmode', 'all');
 	}
 }
 
@@ -70,39 +70,39 @@ function onCheckAll() {
 			var item = lst.getItemAtIndex(i);
 			var hstidx = parseInt(item.getAttribute('hstidx'));
 			var identifier = serverHistory[hstidx];
-			var img = checkBrowsersCompatibility(identifier.url, navVersion);
-			ChangeToolKit.debug('onCheckAll ' + identifier.url + ':' + img);
-			item.firstChild.firstChild.src = img;
+			checkBrowsersCompatibility(identifier.url, navVersion, item.firstChild.firstChild);
 		}
 	} catch (e) {
 		ChangeToolKit.debug(e);
 	}
 }
 
-function checkBrowsersCompatibility(url, navVersion) {
-	var testUrl = url
-			+ '/xchrome_controller.php?action=GetBrowsersCompatibility&module=uixul&ct='
-			+ new Date().getTime();
-	var result = ChangeToolKit.getJSObject(testUrl, {});
-	if (result != null) {
-		var versions = result.contents;
-		if (versions != null && versions.backoffice != null
-				&& versions.backoffice.firefox != null
-				&& versions.backoffice.firefox.length != null) {
-			var lastversion = '';
-			for (var i = 0; i < versions.backoffice.firefox.length; i++) {
-				lastversion = versions.backoffice.firefox[i];
-				if (lastversion == navVersion) {
-					return 'chrome://rbschange/skin/change_17.png';
+function checkBrowsersCompatibility(url, navVersion, imageElement) {
+	var testUrl = url + '/xchrome_controller.php?action=GetBrowsersCompatibility&module=uixul&ct=' + new Date().getTime();
+	
+	ChangeToolKit.getCBJSObject(testUrl, {}, function(result) {
+		if (result != null) {
+			var versions = result.contents;
+			if (versions != null && versions.backoffice != null && versions.backoffice.firefox != null && versions.backoffice.firefox.length != null) {
+				var lastversion = '';
+				for (var i = 0; i < versions.backoffice.firefox.length; i++) {
+					lastversion = versions.backoffice.firefox[i];
+					if (lastversion == navVersion) {
+						imageElement.src = 'chrome://rbschange/skin/change_17.png';
+						return;
+					}
 				}
+				imageElement.src = 'chrome://global/skin/icons/warning-16.png';
+				return;
+			} else {
+				imageElement.src = 'chrome://global/skin/icons/error-16.png';
+				return;
 			}
-			return 'chrome://global/skin/icons/warning-16.png';
 		} else {
-			return 'chrome://global/skin/icons/error-16.png';
-		}
-	} else {
-		return 'chrome://global/skin/icons/error-16.png';
-	}
+			imageElement.src = 'chrome://global/skin/icons/error-16.png';
+			return;
+		}		
+	});
 }
 
 function onDeleteSelected() {

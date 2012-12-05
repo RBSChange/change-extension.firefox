@@ -19,7 +19,7 @@ function ChromeExtensionHandler() {
 ChromeExtensionHandler.prototype = {
 	scheme: "xchrome",
 	defaultPort : -1,
-	protocolFlags : nsIProtocolHandler.URI_STD,
+	protocolFlags : nsIProtocolHandler.URI_STD | nsIProtocolHandler.URI_IS_UI_RESOURCE | nsIProtocolHandler.URI_IS_LOCAL_RESOURCE,
   
 	classDescription: "Chrome Extension Protocol",
 	classID: Components.ID("{6803D375-226F-4777-A8FF-D0022C2F4B40}"),
@@ -99,7 +99,7 @@ ChromeExtensionHandler.prototype = {
 			 	ext_uri_str += "?" + ext_path;
 			}
 			
-			var ext_uri = ioService.newURI(ext_uri_str, null, null);
+			var ext_uri = ioService.newURI(ext_uri_str, null, uri);
 			var ext_channel = ioService.newChannelFromURI(ext_uri);
 			return ext_channel;
 		},
@@ -146,8 +146,8 @@ ChromeExtensionHandler.prototype = {
   },
   
   newURI : function(spec, charset, baseURI) {
-    //this.debug("[ChromeExtensionHandler.newURI] " + spec);
-      
+    this.debug("[ChromeExtensionHandler.newURI] " + spec);
+    this.debug("[baseURI] " + (baseURI ? baseURI.spec : 'null'));  
     var new_url = Components.classes["@mozilla.org/network/standard-url;1"].createInstance(nsIStandardURL);
     new_url.init(1, -1, spec, charset, baseURI);    
     
@@ -165,7 +165,7 @@ ChromeExtensionHandler.prototype = {
     
     try {
       var uri_string = uri.spec.toLowerCase();
-
+      var ext_spec = null;
       for (ext_spec in this._extensions) {
         var ext = this._extensions[ext_spec];
         
@@ -251,7 +251,7 @@ ChromeExtensionHandler.prototype = {
     
     debug : function (str)
     {
-      if (this.debugOn) { 
+      if (true) { 
     	dump("XCHROME: " + str + "\n");
         this.ConsoleService.logStringMessage("XCHROME:" + str);
       }

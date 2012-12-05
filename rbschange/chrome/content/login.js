@@ -95,75 +95,83 @@ function setBrowsersCompatibilityMsg($msg, $type)
 	}
 }
 
-function checkBrowsersCompatibility(url)
+function checkBrowsersCompatibility(url, callBack)
 {
+	ChangeToolKit.debug('checkBrowsersCompatibility: ' + url);
 	if (url == checkedUrl) {return;}
+	document.getElementById('rbschangelogin').setAttribute('buttondisabledaccept', 'true');
 	checkedUrl = url;
 	
 	var msg = document.getElementById('error_versionchecking').value;
 	setBrowsersCompatibilityMsg(msg, 'info');
 	
 	var testUrl = url + '/xchrome_controller.php?action=GetBrowsersCompatibility&module=uixul&ct=' + new Date().getTime();
-	var result = ChangeToolKit.getJSObject(testUrl, {});
-	if (result != null)
-	{
-		var checked = false;
-		var navVersion = ChangeToolKit.getNavigatorVersion();		
-		var versions = result.contents;
-		if (versions != null && versions.backoffice != null 
-			&& versions.backoffice.firefox != null 
-			&& versions.backoffice.firefox.length != null)
-		{
-			var lastversion = '';
-			for (var i= 0; i < versions.backoffice.firefox.length; i++)
+	ChangeToolKit.getCBJSObject(testUrl, {}, function(result) {
+		document.getElementById('rbschangelogin').removeAttribute('buttondisabledaccept');
+		if (result != null) {
+			var checked = false;
+			var navVersion = ChangeToolKit.getNavigatorVersion();		
+			var versions = result.contents;
+			if (versions != null && versions.backoffice != null && versions.backoffice.firefox != null && versions.backoffice.firefox.length != null)
 			{
-				lastversion = versions.backoffice.firefox[i];
-				if (lastversion == navVersion)
+				var lastversion = '';
+				for (var i= 0; i < versions.backoffice.firefox.length; i++)
 				{
-					checked = true;
-					break;
+					lastversion = versions.backoffice.firefox[i];
+					if (lastversion == navVersion)
+					{
+						checked = true;
+						break;
+					}
 				}
-			}
-			if (!checked)
-			{
-				var msg = document.getElementById('error_wrongversion').value;
-				msg = msg.replace(/navversion/, navVersion).replace(/lastversion/, lastversion);
-				setBrowsersCompatibilityMsg(msg, 'info');
-			}
-			else
-			{
-				setBrowsersCompatibilityMsg('', 'info');
-			}
-			
-			if (versions.uiprotocol)
-			{
-				checkedUrl = url.replace(/^https?:/, versions.uiprotocol + ':');
-				if (checkedUrl !== url)
+				if (!checked)
 				{
-					document.getElementById('url').value = checkedUrl;
+					var msg = document.getElementById('error_wrongversion').value;
+					msg = msg.replace(/navversion/, navVersion).replace(/lastversion/, lastversion);
+					setBrowsersCompatibilityMsg(msg, 'info');
 				}
-			}
-			
-			if (versions.firstlogin)
-			{
-				document.getElementById('connexiontype').selectedIndex = 1;
-				document.getElementById('adminlogin').value = versions.firstlogin;
-			}
-			else
-			{
-				document.getElementById('connexiontype').selectedIndex = 0;
-			}
-			
-			if (versions.uilangs)
-			{
-				updateUILang(versions.uilangs);
+				else
+				{
+					setBrowsersCompatibilityMsg('', 'info');
+				}
+				
+				if (versions.uiprotocol)
+				{
+					checkedUrl = url.replace(/^https?:/, versions.uiprotocol + ':');
+					if (checkedUrl !== url)
+					{
+						document.getElementById('url').value = checkedUrl;
+					}
+				}
+				
+				if (versions.firstlogin)
+				{
+					document.getElementById('connexiontype').selectedIndex = 1;
+					document.getElementById('adminlogin').value = versions.firstlogin;
+				}
+				else
+				{
+					document.getElementById('connexiontype').selectedIndex = 0;
+				}
+				
+				if (versions.uilangs)
+				{
+					updateUILang(versions.uilangs);
+					
+				}
+				else
+				{
+					updateUILang(null);
+				}
 				
 			}
 			else
 			{
+				var msg = document.getElementById('error_unknowversion').value;
+				setBrowsersCompatibilityMsg(msg, 'error');
+				document.getElementById('connexiontype').selectedIndex = 0;
 				updateUILang(null);
 			}
-			
 		}
 		else
 		{
@@ -172,15 +180,12 @@ function checkBrowsersCompatibility(url)
 			document.getElementById('connexiontype').selectedIndex = 0;
 			updateUILang(null);
 		}
-	}
-	else
-	{
-		var msg = document.getElementById('error_unknowversion').value;
-		setBrowsersCompatibilityMsg(msg, 'error');
-		document.getElementById('connexiontype').selectedIndex = 0;
-		updateUILang(null);
-		return false;
-	}
+		
+		if (callBack) {
+			ChangeToolKit.debug('checkBrowsersCompatibility callBack: ' + checkedUrl);
+			callBack(checkedUrl);
+		}
+	});
 }
 
 function updateUILang(langs)
@@ -275,24 +280,19 @@ function onResetPassword()
 	{
 		var paramsObject = {login: login};
 		var logUrl = url + '/xchrome_controller.php?action=ResetPassword&module=users&ct=' + new Date().getTime();
-		var b = ChangeToolKit.getJSObject(logUrl, paramsObject);
-		if (b != null && b.status != null)
-		{
-			if (b.status == 'OK')
-			{
-				alert(b.contents.message);
-				document.getElementById('resetpassword').setAttribute('disabled', 'true');
+		ChangeToolKit.getCBJSObject(logUrl, paramsObject, function(b) {
+			if (b != null && b.status != null) {
+				if (b.status == 'OK') {
+					alert(b.contents.message);
+					document.getElementById('resetpassword').setAttribute('disabled', 'true');
+				} else {
+					alert(b.contents.errorMessage);
+				}
+			} else {
+				var msg = document.getElementById('error_servernotfound').value + url;
+				alert(msg);
 			}
-			else
-			{
-				alert(b.contents.errorMessage);
-			}
-		}
-		else
-		{
-			var msg = document.getElementById('error_servernotfound').value + url;
-			alert(msg);
-		}
+		});
 	}
 }
 
@@ -309,12 +309,13 @@ function doSave()
 { 
 	if (document.getElementById('connexiontype').selectedIndex == 0)
 	{
-		return doLogin();
+		doLogin();
 	}
 	else
 	{
-		return doFirstLogin();
+		doFirstLogin();
 	}
+	return false;
 }
 
 function doLogin()
@@ -328,16 +329,13 @@ function doLogin()
 	var url = cleanUrl(originalUrl);
 	if (url != '')
 	{
-		checkBrowsersCompatibility(url);
-		
-		url = checkedUrl;
 		identifier.uri = url + '/xchrome_controller.php';
 	}
 	else
 	{
 		var msg = document.getElementById('error_invalidurl').value;
 		alert(msg);
-		return false;
+		return;
 	}
 	
 	if (identifier.login.length > 0 && identifier.password.length > 0)
@@ -350,51 +348,50 @@ function doLogin()
 		}
 		logUrl += '&ct=' + new Date().getTime();
 		
-		var b = ChangeToolKit.getJSObject(logUrl, paramsObject);
-		if (b != null && b['ok'] != null)
-		{		
-			identifier.path = b['ok'];
-			identifier.openinnewwindow = document.getElementById('openinnewwindow').checked;
-			if (document.getElementById('persistidentity').checked)
-			{
-				addInHistory(url, identifier.login, identifier.path, identifier.uilang);
-				ChangeToolKit.updateStoredLoginInfo(identifier.path, identifier.login, identifier.password);
+		ChangeToolKit.getCBJSObject(logUrl, paramsObject, function(b) {
+			if (b != null && b['ok'] != null)
+			{		
+				identifier.path = b['ok'];
+				identifier.openinnewwindow = document.getElementById('openinnewwindow').checked;
+				if (document.getElementById('persistidentity').checked)
+				{
+					addInHistory(url, identifier.login, identifier.path, identifier.uilang);
+					ChangeToolKit.updateStoredLoginInfo(identifier.path, identifier.login, identifier.password);
+				}
+				else
+				{
+					addInHistory(url, '', identifier.path, identifier.uilang);				
+					ChangeToolKit.deleteStoredLoginInfo(identifier.path, identifier.login);
+				}
+				if (b['OAuth'] != null)
+				{
+					ChangeToolKit.updateOAuthInfo(identifier.path, identifier.login, b['OAuth']);
+				}
+				
+				window.opener.onChangeLogin(identifier);
+				window.close();
 			}
 			else
 			{
-				addInHistory(url, '', identifier.path, identifier.uilang);				
-				ChangeToolKit.deleteStoredLoginInfo(identifier.path, identifier.login);
+				if (b != null && b['error'] != null)
+				{
+					alert(b['error']);
+					document.getElementById('resetpassword').removeAttribute('disabled');
+					document.getElementById('password').setAttribute('value', '');
+				}
+				else
+				{
+					var msg = document.getElementById('error_notchangeserver').value;
+					setBrowsersCompatibilityMsg(msg, 'error');
+				}
 			}
-			if (b['OAuth'] != null)
-			{
-				ChangeToolKit.updateOAuthInfo(identifier.path, identifier.login, b['OAuth']);
-			}
-			
-			window.opener.onChangeLogin(identifier);
-		}
-		else
-		{
-			if (b != null && b['error'] != null)
-			{
-				alert(b['error']);
-				document.getElementById('resetpassword').removeAttribute('disabled');
-				document.getElementById('password').setAttribute('value', '');
-			}
-			else
-			{
-				var msg = document.getElementById('error_notchangeserver').value;
-				setBrowsersCompatibilityMsg(msg, 'error');
-			}
-			return false;
-		}
+		});
 	}
 	else
 	{
 		var msg = document.getElementById('error_allfieldsrequired').value;
 		alert(msg);
-		return false;
 	}
-	return true; 
 } 
 
 function doFirstLogin()
@@ -409,7 +406,6 @@ function doFirstLogin()
 	var url = cleanUrl(originalUrl);
 	if (url != '')
 	{
-		checkBrowsersCompatibility(url);	
 		url = checkedUrl;
 		identifier.uri = url + '/xchrome_controller.php';
 	}
@@ -417,57 +413,56 @@ function doFirstLogin()
 	{
 		var msg = document.getElementById('error_invalidurl').value;
 		alert(msg);
-		return false;
+		return;
 	}
 	
 	if (identifier.login.length > 0 && identifier.password.length > 0 && adminemail.length > 0)
 	{
 		var paramsObject = {login: identifier.login, password: identifier.password, adminemail: adminemail};
 		var logUrl = identifier.uri + '?action=ChromeLogin&module=users&ct=' + new Date().getTime();
-		var b = ChangeToolKit.getJSObject(logUrl, paramsObject);
-		if (b != null && b['ok'] != null)
-		{		
-			identifier.path = b['ok'];
-			identifier.openinnewwindow = document.getElementById('openinnewwindow').checked;
-			if (document.getElementById('persistidentity').checked)
-			{
-				addInHistory(url, identifier.login, identifier.path, '');
-				ChangeToolKit.updateStoredLoginInfo(identifier.path, identifier.login, identifier.password);
+		ChangeToolKit.getCBJSObject(logUrl, paramsObject, function(b) {
+			if (b != null && b['ok'] != null)
+			{		
+				identifier.path = b['ok'];
+				identifier.openinnewwindow = document.getElementById('openinnewwindow').checked;
+				if (document.getElementById('persistidentity').checked)
+				{
+					addInHistory(url, identifier.login, identifier.path, '');
+					ChangeToolKit.updateStoredLoginInfo(identifier.path, identifier.login, identifier.password);
+				}
+				else
+				{
+					addInHistory(url, '', '', identifier.path, '');
+					ChangeToolKit.deleteStoredLoginInfo(identifier.path, identifier.login);
+				}
+				
+				if (b['OAuth'] != null)
+				{
+					ChangeToolKit.updateOAuthInfo(identifier.path, identifier.login, b['OAuth']);
+				}
+				
+				window.opener.onChangeLogin(identifier);
+				window.close();
 			}
 			else
 			{
-				addInHistory(url, '', '', identifier.path, '');
-				ChangeToolKit.deleteStoredLoginInfo(identifier.path, identifier.login);
+				if (b != null && b['error'] != null)
+				{
+					alert(b['error']);
+				}
+				else
+				{
+					var msg = document.getElementById('error_notchangeserver').value;
+					setBrowsersCompatibilityMsg(msg, 'error');
+				}
 			}
-			
-			if (b['OAuth'] != null)
-			{
-				ChangeToolKit.updateOAuthInfo(identifier.path, identifier.login, b['OAuth']);
-			}
-			
-			window.opener.onChangeLogin(identifier);
-		}
-		else
-		{
-			if (b != null && b['error'] != null)
-			{
-				alert(b['error']);
-			}
-			else
-			{
-				var msg = document.getElementById('error_notchangeserver').value;
-				setBrowsersCompatibilityMsg(msg, 'error');
-			}
-			return false;
-		}
+		});
 	}
 	else
 	{
 		var msg = document.getElementById('error_allfieldsrequired').value;
 		alert(msg);
-		return false;
 	}
-	return true; 
 }
 
 function doCancel()
@@ -517,7 +512,7 @@ function addInHistory(url, login, xpath, uilang)
 {
 	var historyentry = {pId: xpath, url:url, login:login, lang: uilang};
 	ChangeToolKit.setRegisteredSite(historyentry);
-	ChangeToolKit.getPreferencesService().setCharPref('rbschange.ext.lastprojectid', xpath);
+	ChangeToolKit.getPreferencesService().setCharPref('extensions.rbschange.ext.lastprojectid', xpath);
 	if (window.opener)
 	{
 		var btn = window.opener.document.getElementById('tbtnChange');

@@ -5,7 +5,7 @@
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
 	onload="onLoginLoad();" 
 	persist="screenX screenY width height"
-	buttons="accept,cancel"
+	buttons="accept,cancel" buttondisabledaccept="true"
 	buttonlabelaccept="&rbschange.login.validate;" ondialogaccept="return doSave();" 
 	buttonlabelcancel="&rbschange.login.cancel;" ondialogcancel="return doCancel();">
 	

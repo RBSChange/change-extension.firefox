@@ -19,7 +19,7 @@ var ChangeToolKit = {
 	{
 		if (this.debugactive === null)
 		{
-			this.debugactive = this.getPreferencesService().getBoolPref('rbschange.ext.debug');
+			this.debugactive = this.getPreferencesService().getBoolPref('extensions.rbschange.ext.debug');
 		}
 		if (this.debugactive)
 		{
@@ -97,22 +97,7 @@ var ChangeToolKit = {
         return bool;
 	},
 	
-	JSONDecode: function(string)
-	{
-		if (typeof(JSON) != 'undefined')
-		{
-			return JSON.parse(string);
-		}
-		else 
-		{
-			var Ci = Components.interfaces;
-			var Cc = Components.classes;
-			var nativeJSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-			return nativeJSON.decode(string);
-		}
-	},
-	
-	getJSObject: function(uri, paramsObject)
+	getCBJSObject: function(uri, paramsObject, callBack)
 	{
 		var data = null;
 		if (typeof(paramsObject) == 'object')
@@ -123,36 +108,36 @@ var ChangeToolKit = {
 				data = str;
 			}
 		}
-		this.debug('Info ChangeToolKit.getJSObject get URI: ' + uri);
+		this.debug('Info getCBJSObject get URI: ' + uri);
 		try
 		{
 			var req = new XMLHttpRequest();
-			req.open('POST', uri, false);
+			req.open('POST', uri, true);
+			req.onreadystatechange = function (aEvt) {
+				if (req.readyState == 4) {
+					var json = null;
+					if (req.status == 200) {
+						
+						try {
+							json = JSON.parse(req.responseText);
+						} catch (e) {
+							this.debug('Error in getCBJSObject on parsing: ' + req.responseText);
+						}	
+						
+					} else {
+						this.debug('Error in getCBJSObject invalid status: ' + req.status + ' for uri: '+ uri);
+					}
+					callBack(json);
+				}
+			};
 			req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 			req.send(data);	
 		}
 		catch (e)
 		{
 			this.debug('Unable to send Request: ' + uri);
-			return null;
+			callBack(null);
 		}
-		
-		if (req.status == 200)
-		{
-			try
-			{
-				return this.JSONDecode(req.responseText);
-			}
-			catch (e)
-			{
-				this.debug('Error in ChangeToolKit.getJSObject on parsing: ' + req.responseText);	
-			}	
-		}
-		else
-		{
-			this.debug('Error in ChangeToolKit.getJSObject invalid status: ' + req.status + ' for uri: '+ uri);
-		}
-		return null;
 	},
 	
 	encodeURIParameters: function(paramsObject)
@@ -211,11 +196,11 @@ var ChangeToolKit = {
 	{
 		var history = [];
 		var prefs = this.getPreferencesService();
-		var branch = prefs.getBranch("rbschange.history.");
+		var branch = prefs.getBranch("extensions.rbschange.history.");
 		var children = branch.getChildList("", {});
 		for (var i = 0; i <  children.length; i++)
 		{
-		    var prefname = "rbschange.history." + children[i];
+		    var prefname = "extensions.rbschange.history." + children[i];
 		    var data = prefs.getComplexValue(prefname , Components.interfaces.nsISupportsString).data;
 		    history.push(JSON.parse(data));
 		}		
@@ -238,13 +223,13 @@ var ChangeToolKit = {
 	
 	getLastLoginRegisteredSite: function()
 	{
-		var projectId = this.getPreferencesService().getCharPref('rbschange.ext.lastprojectid');
+		var projectId = this.getPreferencesService().getCharPref('extensions.rbschange.ext.lastprojectid');
 		if (projectId != null && projectId != '')
 		{
 			var entry = this.getRegisteredSiteByProjectId(projectId);
 			if (entry === null)
 			{
-				this.getPreferencesService().clearUserPref('rbschange.ext.lastprojectid');
+				this.getPreferencesService().clearUserPref('extensions.rbschange.ext.lastprojectid');
 			}
 			return entry;
 		}
@@ -253,7 +238,7 @@ var ChangeToolKit = {
 	
 	getRegisteredSiteByProjectId: function(projectId)
 	{
-		var prefname = "rbschange.history." + projectId;
+		var prefname = "extensions.rbschange.history." + projectId;
 		var prefs = this.getPreferencesService();
 		if (prefs.prefHasUserValue(prefname))
 		{
@@ -267,11 +252,11 @@ var ChangeToolKit = {
 	{
 		ChangeToolKit.debug('ChangeToolKit.clearRegisteredSiteByProjectId: ' + projectId);
 		var prefs = this.getPreferencesService();
-		if (prefs.getCharPref('rbschange.ext.lastprojectid') == projectId)
+		if (prefs.getCharPref('extensions.rbschange.ext.lastprojectid') == projectId)
 		{	
-			prefs.clearUserPref('rbschange.ext.lastprojectid');
+			prefs.clearUserPref('extensions.rbschange.ext.lastprojectid');
 		}
-		var prefname = "rbschange.history." + projectId;
+		var prefname = "extensions.rbschange.history." + projectId;
 		if (prefs.prefHasUserValue(prefname))
 		{
 			prefs.clearUserPref(prefname);
@@ -283,7 +268,7 @@ var ChangeToolKit = {
 	setRegisteredSite: function(history)
 	{
 		var historyentry = {pId: history.pId, url:history.url, login:history.login, lang:history.lang};
-		var prefname = "rbschange.history." + historyentry.pId;
+		var prefname = "extensions.rbschange.history." + historyentry.pId;
 		var prefs = this.getPreferencesService();
 		var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
 	    str.data = JSON.stringify(historyentry);

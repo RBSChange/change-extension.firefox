@@ -51,22 +51,54 @@ function sendCommand() {
 	}
 	document.getElementById('send').disabled = true;
 	var resultDiv = document.getElementById('result');
-	resultDiv.innerHTML = '<span class="row_32">&gt;'+ cmdText + ' ' + args.join(' ') + '<br /></span>';
+	while (resultDiv.lastChild) {resultDiv.removeChild(resultDiv.lastChild);}
+	var html = '<span class="row_32">&gt;'+ cmdText + ' ' + args.join(' ') + '<br /></span>';
+	
+	resultDiv.appendChild(parseHTML(document, html, true, webconsoledata.URI, true));
 	resultDiv.style.cursor = 'wait';
 	sendMessage(message, displayCommandResult);	
+}
+
+function parseHTML(doc, html, allowStyle, baseURI, isXML) 
+{ 
+    // User the newer nsIParserUtils on versions that support it.
+    if ("@mozilla.org/parserutils;1" in Components.classes) 
+    {
+    	var parser = Components.classes["@mozilla.org/parserutils;1"].getService(Components.interfaces.nsIParserUtils);
+        if ("parseFragment" in parser)
+        {
+        	return parser.parseFragment(html, allowStyle ? parser.SanitizerAllowStyle : 0, !!isXML, baseURI, doc.documentElement);
+        }
+    }
+    return Components.classes["@mozilla.org/feed-unescapehtml;1"]
+                     .getService(Components.interfaces.nsIScriptableUnescapeHTML)
+                     .parseFragment(html, !!isXML, baseURI, doc.documentElement);
 }
 
 function displayCommandResult(requestToken) 
 {
 	var text = requestToken.responseText;
 	var resultDiv = document.getElementById('result');
+	while (resultDiv.lastChild) {
+		resultDiv.removeChild(resultDiv.lastChild);
+	}
+	
 	if (text[0] == '<')
 	{
-		resultDiv.innerHTML = text;
-	}
-	else
+		text = text.replace(/href="javascript:/g, "data-href=\"javascript:");
+		resultDiv.appendChild(parseHTML(document, text, true, webconsoledata.URI, true));
+		var items = resultDiv.getElementsByTagName('a');
+		for (var i = 0; i < items.length; i++) 
+		{ 
+			if (items[i].hasAttribute('data-href'))
+			{
+				items[i].setAttribute('href', items[i].getAttribute('data-href'));
+			}
+		}
+	} 
+	else 
 	{
-		resultDiv.innerHTML = '<pre></pre>';
+		resultDiv.appendChild(parseHTML(document, '<pre></pre>', true, webconsoledata.URI, true));
 		var tn  = document.createTextNode(text);
 		resultDiv.firstChild.appendChild(tn);
 	}
@@ -150,6 +182,9 @@ function onWebconsoleLoad()
 	webconsoledata.change.token = identifier.token;
 	webconsoledata.change.tokenSecret = identifier.tokenSecret;
 	webconsoledata.tokenURL = identifier.URL + webconsoledata.tokenURL;
+	
+	var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService().QueryInterface(Components.interfaces.nsIIOService);
+	webconsoledata.URI = ioService.newURI(identifier.URL, null, null);
 	
 	var message = getDefaultMessage();
 	message.parameters.push(["argv[0]", 'getCommands']);

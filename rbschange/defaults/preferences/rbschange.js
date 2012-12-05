@@ -1,5 +1,5 @@
-pref("rbschange.ext.refreshcookies", "all");
-pref("rbschange.ext.debug", false);
-pref("rbschange.ext.startmode", "all");
-pref("rbschange.ext.lastprojectid", "");
-pref("rbschange.ext.prefversion", 0);
+pref("extensions.rbschange.ext.refreshcookies", "all");
+pref("extensions.rbschange.ext.debug", false);
+pref("extensions.rbschange.ext.startmode", "all");
+pref("extensions.rbschange.ext.lastprojectid", "");
+pref("extensions.rbschange.ext.prefversion", 0);
