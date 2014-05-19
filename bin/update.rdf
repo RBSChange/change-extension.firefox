@@ -93,6 +93,10 @@
                    em:version="1.24">
     <em:targetApplication RDF:resource="rdf:#$0BUxy"/>
   </RDF:Description>
+  <RDF:Description RDF:about="rdf:#$YAUxy"
+                   em:version="1.25">
+    <em:targetApplication RDF:resource="rdf:#$0MAxy"/>
+  </RDF:Description>
   <RDF:Description RDF:about="rdf:#$izUxy"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.0.3"
@@ -162,6 +166,13 @@
                    em:maxVersion="4.0.*"
                    em:updateLink="http://www.rbschange.fr/static/extension/rbschange1.24.xpi"
                    em:updateHash="sha1:2F4B1AC0CF363DF24D9B2FF0C7D0F7FD46A95C8D"
+                   em:updateInfoURL="http://www.rbschange.fr/static/extension/rbschange.xhtml" />
+  <RDF:Description RDF:about="rdf:#$0MAxy"
+                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+                   em:minVersion="3.0.3"
+                   em:maxVersion="4.0.*"
+                   em:updateLink="http://www.rbschange.fr/static/extension/rbschange1.25.xpi"
+                   em:updateHash="sha1:5F33C68558F820BE45A16C20C3CB628E96549796"
                    em:updateInfoURL="http://www.rbschange.fr/static/extension/rbschange.xhtml" />
   <RDF:Description RDF:about="rdf:#$CzUxy"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
@@ -260,6 +271,7 @@
     <RDF:li RDF:resource="rdf:#$FAUxy"/>
     <RDF:li RDF:resource="rdf:#$PAUxy"/>
     <RDF:li RDF:resource="rdf:#$ZAUxy"/>
+    <RDF:li RDF:resource="rdf:#$YAUxy"/>
   </RDF:Seq>
   <RDF:Description RDF:about="urn:mozilla:extension:{60e116b0-f84c-11dd-87af-0800200c9a66}"
                    em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBACgNXT4eEJ1rGJf1QJ376VOMa2rAZ7vENLV1ygVTI3Afc26v1Vt7+rXBwAYK+76XJAsCXgFR+37kk0zMXkuI/9bbS6D0FRBCwaLDTzSc7rdy5y/AYLD+NOVvObJxIp2bh0mtbRFo/edu73VxanEcRIk/PZtNV1NZU/eSmt/z1/4C">
