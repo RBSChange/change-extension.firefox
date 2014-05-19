@@ -19,7 +19,7 @@ var ChangeToolKit = {
 	{
 		if (this.debugactive === null)
 		{
-			this.debugactive = this.getPreferencesService().getBoolPref('extensions.rbschange.ext.debug');
+			this.debugactive = this.getPreferencesService().getBranch("").getBoolPref('extensions.rbschange.ext.debug');
 		}
 		if (this.debugactive)
 		{
@@ -201,7 +201,7 @@ var ChangeToolKit = {
 		for (var i = 0; i <  children.length; i++)
 		{
 		    var prefname = "extensions.rbschange.history." + children[i];
-		    var data = prefs.getComplexValue(prefname , Components.interfaces.nsISupportsString).data;
+		    var data = prefs.getBranch("").getComplexValue(prefname , Components.interfaces.nsISupportsString).data;
 		    history.push(JSON.parse(data));
 		}		
 		return history;
@@ -242,7 +242,7 @@ var ChangeToolKit = {
 		var prefs = this.getPreferencesService();
 		if (prefs.prefHasUserValue(prefname))
 		{
-			var data = prefs.getComplexValue(prefname , Components.interfaces.nsISupportsString).data;
+			var data = prefs.getBranch("").getComplexValue(prefname , Components.interfaces.nsISupportsString).data;
 			return JSON.parse(data);
 		}
 		return null;
@@ -251,7 +251,7 @@ var ChangeToolKit = {
 	clearRegisteredSiteByProjectId: function(projectId)
 	{
 		ChangeToolKit.debug('ChangeToolKit.clearRegisteredSiteByProjectId: ' + projectId);
-		var prefs = this.getPreferencesService();
+		var prefs = this.getPreferencesService().getBranch("");
 		if (prefs.getCharPref('extensions.rbschange.ext.lastprojectid') == projectId)
 		{	
 			prefs.clearUserPref('extensions.rbschange.ext.lastprojectid');
@@ -272,7 +272,7 @@ var ChangeToolKit = {
 		var prefs = this.getPreferencesService();
 		var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
 	    str.data = JSON.stringify(historyentry);
-	    prefs.setComplexValue(prefname, Components.interfaces.nsISupportsString, str);
+	    prefs.getBranch("").setComplexValue(prefname, Components.interfaces.nsISupportsString, str);
 	    return historyentry;
 	},
 	   	

@@ -512,7 +512,7 @@ function addInHistory(url, login, xpath, uilang)
 {
 	var historyentry = {pId: xpath, url:url, login:login, lang: uilang};
 	ChangeToolKit.setRegisteredSite(historyentry);
-	ChangeToolKit.getPreferencesService().setCharPref('extensions.rbschange.ext.lastprojectid', xpath);
+	ChangeToolKit.getPreferencesService().getBranch("").setCharPref('extensions.rbschange.ext.lastprojectid', xpath);
 	if (window.opener)
 	{
 		var btn = window.opener.document.getElementById('tbtnChange');
