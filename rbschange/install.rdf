@@ -4,7 +4,7 @@
     <em:id>{60e116b0-f84c-11dd-87af-0800200c9a66}</em:id>
     <em:type>2</em:type>
     <em:name>RBS Change Manager</em:name>
-    <em:version>1.40</em:version>
+    <em:version>1.41</em:version>
     <em:creator>RBS Change Dev. Team</em:creator>
     <em:contributor></em:contributor>
     <em:description>Manage RBS Change Backoffice application</em:description>
